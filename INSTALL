@@ -1,0 +1,11 @@
+Install Procedure
+-----------------
+$ ./waf --help     # shows available waf options
+$ ./waf configure  # use '--prefix=PREFIX' if needed
+$ ./waf build
+$ ./waf install
+
+
+Testing
+-------
+See test/README
