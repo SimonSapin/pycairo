@@ -65,8 +65,8 @@ pycairo_dealloc(PycairoContext *o) {
     o->ctx = NULL;
   }
   Py_CLEAR(o->base);
-
-  o->ob_type->tp_free((PyObject *)o);
+  //o->ob_type->tp_free((PyObject *)o);
+  Py_TYPE(o)->tp_free(o);
 }
 
 static PyObject *
@@ -286,7 +286,7 @@ pycairo_font_extents (PycairoContext *o) {
 
 static PyObject *
 pycairo_get_antialias (PycairoContext *o) {
-  return PyInt_FromLong (cairo_get_antialias (o->ctx));
+  return PyLong_FromLong (cairo_get_antialias (o->ctx));
 }
 
 static PyObject *
@@ -328,12 +328,12 @@ pycairo_get_dash (PycairoContext *o) {
 
 static PyObject *
 pycairo_get_dash_count (PycairoContext *o) {
-  return PyInt_FromLong (cairo_get_dash_count (o->ctx));
+  return PyLong_FromLong (cairo_get_dash_count (o->ctx));
 }
 
 static PyObject *
 pycairo_get_fill_rule (PycairoContext *o) {
-  return PyInt_FromLong(cairo_get_fill_rule (o->ctx));
+  return PyLong_FromLong(cairo_get_fill_rule (o->ctx));
 }
 
 static PyObject *
@@ -368,12 +368,12 @@ pycairo_get_group_target (PycairoContext *o) {
 
 static PyObject *
 pycairo_get_line_cap (PycairoContext *o) {
-  return PyInt_FromLong(cairo_get_line_cap (o->ctx));
+  return PyLong_FromLong(cairo_get_line_cap (o->ctx));
 }
 
 static PyObject *
 pycairo_get_line_join (PycairoContext *o) {
-  return PyInt_FromLong(cairo_get_line_join (o->ctx));
+  return PyLong_FromLong(cairo_get_line_join (o->ctx));
 }
 
 static PyObject *
@@ -395,7 +395,7 @@ pycairo_get_miter_limit (PycairoContext *o) {
 
 static PyObject *
 pycairo_get_operator (PycairoContext *o) {
-  return PyInt_FromLong (cairo_get_operator (o->ctx));
+  return PyLong_FromLong (cairo_get_operator (o->ctx));
 }
 
 static PyObject *
@@ -457,7 +457,7 @@ _PyGlyphs_AsGlyphs (PyObject *py_object, int *num_glyphs)
 		      "each glyph item must be an (i,x,y) sequence");
       goto error;
     }
-    glyph->index = PyInt_AsLong(PySequence_Fast_GET_ITEM(py_seq, 0));
+    glyph->index = PyLong_AsLong(PySequence_Fast_GET_ITEM(py_seq, 0));
     glyph->x = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(py_seq, 1));
     glyph->y = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(py_seq, 2));
     if (PyErr_Occurred())
@@ -784,32 +784,21 @@ pycairo_scale (PycairoContext *o, PyObject *args) {
 static PyObject *
 pycairo_select_font_face (PycairoContext *o, PyObject *args) {
   PyObject *obj;
-  PyObject *pyUTF8 = NULL;
-  const char *utf8family = NULL;
   cairo_font_slant_t slant   = CAIRO_FONT_SLANT_NORMAL;
   cairo_font_weight_t weight = CAIRO_FONT_WEIGHT_NORMAL;
 
-  if (!PyArg_ParseTuple(args, "O!|ii:Context.select_font_face",
-			&PyBaseString_Type, &obj, &slant, &weight))
+  if (!PyArg_ParseTuple(args, "U|ii:Context.select_font_face",
+			&obj, &slant, &weight))
     return NULL;
 
-  /* accept str and unicode family, auto convert to utf8 as required */
-  if (PyString_Check(obj)) {
-    /* A plain ASCII string is also a valid UTF-8 string */
-    utf8family = PyString_AS_STRING(obj);
-  } else if (PyUnicode_Check(obj)) {
-    pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 != NULL) {
-      utf8family = PyString_AS_STRING(pyUTF8);
-    }
-  } else {
-    PyErr_SetString(PyExc_TypeError,
-		    "Context.select_font_face: family must be str or unicode");
-  }
-  if (utf8family == NULL)
+  PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
+  if (pyUTF8 == NULL)
+    return NULL;
+  const char *utf8 = PyBytes_AS_STRING(pyUTF8);
+  if (utf8 == NULL)
     return NULL;
 
-  cairo_select_font_face (o->ctx, utf8family, slant, weight);
+  cairo_select_font_face (o->ctx, utf8, slant, weight);
   Py_XDECREF(pyUTF8);
   RETURN_NULL_IF_CAIRO_CONTEXT_ERROR(o->ctx);
   Py_RETURN_NONE;
@@ -1109,23 +1098,16 @@ pycairo_show_page (PycairoContext *o) {
 }
 
 static PyObject *
-pycairo_show_text (PycairoContext *o, PyObject *obj) {
-  PyObject *pyUTF8 = NULL;
-  const char *utf8 = NULL;
+pycairo_show_text (PycairoContext *o, PyObject *args) {
+  PyObject *obj;
 
-  /* accept str and unicode text, auto convert to utf8 as required */
-  if (PyString_Check(obj)) {
-    /* A plain ASCII string is also a valid UTF-8 string */
-    utf8 = PyString_AS_STRING(obj);
-  } else if (PyUnicode_Check(obj)) {
-    pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 != NULL) {
-      utf8 = PyString_AS_STRING(pyUTF8);
-    }
-  } else {
-    PyErr_SetString(PyExc_TypeError,
-		    "Context.show_text: text must be str or unicode");
-  }
+  if (!PyArg_ParseTuple(args, "U:Context.show_text", &obj))
+    return NULL;
+
+  PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
+  if (pyUTF8 == NULL)
+    return NULL;
+  const char *utf8 = PyBytes_AS_STRING(pyUTF8);
   if (utf8 == NULL)
     return NULL;
 
@@ -1164,27 +1146,20 @@ pycairo_stroke_preserve (PycairoContext *o) {
 }
 
 static PyObject *
-pycairo_text_extents (PycairoContext *o, PyObject *obj) {
-  cairo_text_extents_t extents;
-  PyObject *pyUTF8 = NULL;
-  const char *utf8 = NULL;
+pycairo_text_extents (PycairoContext *o, PyObject *args) {
+  PyObject *obj;
 
-  /* accept str and unicode text, auto convert to utf8 as required */
-  if (PyString_Check(obj)) {
-    /* A plain ASCII string is also a valid UTF-8 string */
-    utf8 = PyString_AS_STRING(obj);
-  } else if (PyUnicode_Check(obj)) {
-    pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 != NULL) {
-      utf8 = PyString_AS_STRING(pyUTF8);
-    }
-  } else {
-    PyErr_SetString(PyExc_TypeError,
-		    "Context.text_extents: text must be str or unicode");
-  }
+  if (!PyArg_ParseTuple(args, "U:Context.text_extents", &obj))
+    return NULL;
+
+  PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
+  if (pyUTF8 == NULL)
+    return NULL;
+  const char *utf8 = PyBytes_AS_STRING(pyUTF8);
   if (utf8 == NULL)
     return NULL;
 
+  cairo_text_extents_t extents;
   cairo_text_extents (o->ctx, utf8, &extents);
   Py_XDECREF(pyUTF8);
   RETURN_NULL_IF_CAIRO_CONTEXT_ERROR(o->ctx);
@@ -1194,23 +1169,16 @@ pycairo_text_extents (PycairoContext *o, PyObject *obj) {
 }
 
 static PyObject *
-pycairo_text_path (PycairoContext *o, PyObject *obj) {
-  PyObject *pyUTF8 = NULL;
-  const char *utf8 = NULL;
+pycairo_text_path (PycairoContext *o, PyObject *args) {
+  PyObject *obj;
 
-  /* accept str and unicode text, auto convert to utf8 as required */
-  if (PyString_Check(obj)) {
-    /* A plain ASCII string is also a valid UTF-8 string */
-    utf8 = PyString_AS_STRING(obj);
-  } else if (PyUnicode_Check(obj)) {
-    pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 != NULL) {
-      utf8 = PyString_AS_STRING(pyUTF8);
-    }
-  } else {
-    PyErr_SetString(PyExc_TypeError,
-		    "Context.text_path: text must be str or unicode");
-  }
+  if (!PyArg_ParseTuple(args, "U:Context.text_path", &obj))
+    return NULL;
+
+  PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
+  if (pyUTF8 == NULL)
+    return NULL;
+  const char *utf8 = PyBytes_AS_STRING(pyUTF8);
   if (utf8 == NULL)
     return NULL;
 
@@ -1373,12 +1341,12 @@ static PyMethodDef pycairo_methods[] = {
   {"set_tolerance",   (PyCFunction)pycairo_set_tolerance,    METH_VARARGS},
   {"show_glyphs",     (PyCFunction)pycairo_show_glyphs,      METH_VARARGS},
   {"show_page",       (PyCFunction)pycairo_show_page,        METH_NOARGS},
-  {"show_text",       (PyCFunction)pycairo_show_text,        METH_O},
+  {"show_text",       (PyCFunction)pycairo_show_text,        METH_VARARGS},
   {"stroke",          (PyCFunction)pycairo_stroke,           METH_NOARGS},
   {"stroke_extents",  (PyCFunction)pycairo_stroke_extents,   METH_NOARGS},
   {"stroke_preserve", (PyCFunction)pycairo_stroke_preserve,  METH_NOARGS},
-  {"text_extents",    (PyCFunction)pycairo_text_extents,     METH_O},
-  {"text_path",       (PyCFunction)pycairo_text_path,        METH_O},
+  {"text_extents",    (PyCFunction)pycairo_text_extents,     METH_VARARGS},
+  {"text_path",       (PyCFunction)pycairo_text_path,        METH_VARARGS},
   {"transform",       (PyCFunction)pycairo_transform,        METH_VARARGS},
   {"translate",       (PyCFunction)pycairo_translate,        METH_VARARGS},
   {"user_to_device",  (PyCFunction)pycairo_user_to_device,   METH_VARARGS},
@@ -1388,8 +1356,9 @@ static PyMethodDef pycairo_methods[] = {
 };
 
 PyTypeObject PycairoContext_Type = {
-  PyObject_HEAD_INIT(NULL)
-  0,                                  /* ob_size */
+  PyVarObject_HEAD_INIT(&PyType_Type, 0)
+  //  PyObject_HEAD_INIT(NULL)
+  //0,                                  /* ob_size */
   "cairo.Context",                    /* tp_name */
   sizeof(PycairoContext),             /* tp_basicsize */
   0,                                  /* tp_itemsize */

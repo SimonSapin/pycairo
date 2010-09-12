@@ -29,4 +29,4 @@ surface = cairo.ImageSurface.create_for_data(data, cairo.FORMAT_ARGB32,
                                              width, height)
 ctx = cairo.Context(surface)
 surface.write_to_png(fileName)
-print "see %s output file" % fileName
+print("see %s output file" % fileName)

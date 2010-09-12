@@ -18,14 +18,16 @@ width, height = 256, 256 # used by snippet_normalize()
 
 def do_snippet (snippet):
   if verbose_mode:
-    print 'processing %s' % snippet,
+    print('processing %s' % snippet)
 
   surface = cairo.ImageSurface (cairo.FORMAT_ARGB32, width, height)
   cr = cairo.Context (surface)
 
   cr.save()
   try:
-    execfile ('snippets/%s.py' % snippet, globals(), locals())
+    fName = 'snippets/%s.py' % snippet
+    code = open(fName).read()
+    exec (code, globals(), locals())
   except:
 #    exc_type, exc_value = sys.exc_info()[:2]
 #    print >> sys.stderr, exc_type, exc_value

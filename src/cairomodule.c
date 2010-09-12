@@ -145,15 +145,16 @@ static Pycairo_CAPI_t CAPI = {
 
 static PyObject *
 pycairo_cairo_version (PyObject *self) {
-  return PyInt_FromLong (cairo_version());
+  return PyLong_FromLong (cairo_version());
 }
 
 static PyObject *
 pycairo_cairo_version_string (PyObject *self) {
-  return PyString_FromString (cairo_version_string());
+  return PyUnicode_FromString (cairo_version_string());
 }
 
-static PyMethodDef cairo_functions[] = {
+//static PyMethodDef cairo_functions[] = {
+static PyMethodDef cairo_methods[] = {
   {"cairo_version",    (PyCFunction)pycairo_cairo_version, METH_NOARGS},
   {"cairo_version_string", (PyCFunction)pycairo_cairo_version_string,
    METH_NOARGS},
@@ -161,77 +162,133 @@ static PyMethodDef cairo_functions[] = {
 };
 
 
-DL_EXPORT(void)
-init_cairo(void)
-{
-  PyObject *m;
+// Module initialization
+struct cairo_state {
+  PyObject *ErrorObject;
+};
 
+#define GETSTATE(m) ((struct cairo_state*)PyModule_GetState(m))
+
+static int
+cairo_traverse(PyObject *m, visitproc v, void *arg)
+{
+  //  Py_VISIT(GETSTATE(m)->ErrorObject);
+  /* gives error
+     ImportError: ./_cairo.so: undefined symbol: visit
+  */
+  return 0;
+}
+
+static int
+cairo_clear(PyObject *m)
+{
+  Py_CLEAR(GETSTATE(m)->ErrorObject);
+  return 0;
+}
+
+static struct PyModuleDef cairomodule = {
+  PyModuleDef_HEAD_INIT,
+  "cairo",
+  NULL,
+  sizeof(struct cairo_state),
+  cairo_methods,
+  0,  /* m_reload */
+  cairo_traverse,
+  cairo_clear,
+  0,  /* m_free - not needed, since all is done in m_clear */
+};
+
+PyObject *
+PyInit__cairo(void)
+{
   if (PyType_Ready(&PycairoContext_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoFontFace_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoToyFontFace_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoFontOptions_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoMatrix_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoPath_Type) < 0)
-    return;
+    return NULL;
   PycairoPathiter_Type.tp_iter=&PyObject_SelfIter;
   if (PyType_Ready(&PycairoPathiter_Type) < 0)
-    return;
+    return NULL;
 
   if (PyType_Ready(&PycairoPattern_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoSolidPattern_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoSurfacePattern_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoGradient_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoLinearGradient_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoRadialGradient_Type) < 0)
-    return;
+    return NULL;
 
   if (PyType_Ready(&PycairoScaledFont_Type) < 0)
-    return;
+    return NULL;
 
   if (PyType_Ready(&PycairoSurface_Type) < 0)
-    return;
+    return NULL;
 #ifdef CAIRO_HAS_IMAGE_SURFACE
   if (PyType_Ready(&PycairoImageSurface_Type) < 0)
-    return;
+    return NULL;
 #endif
 #ifdef CAIRO_HAS_PDF_SURFACE
   if (PyType_Ready(&PycairoPDFSurface_Type) < 0)
-    return;
+    return NULL;
 #endif
 #ifdef CAIRO_HAS_PS_SURFACE
   if (PyType_Ready(&PycairoPSSurface_Type) < 0)
-    return;
+    return NULL;
 #endif
 #ifdef CAIRO_HAS_SVG_SURFACE
   if (PyType_Ready(&PycairoSVGSurface_Type) < 0)
-    return;
+    return NULL;
 #endif
 #ifdef CAIRO_HAS_WIN32_SURFACE
   if (PyType_Ready(&PycairoWin32Surface_Type) < 0)
-    return;
+    return NULL;
   if (PyType_Ready(&PycairoWin32PrintingSurface_Type) < 0)
-    return;
+    return NULL;
 #endif
 #ifdef CAIRO_HAS_XCB_SURFACE
   if (PyType_Ready(&PycairoXCBSurface_Type) < 0)
-    return;
+    return NULL;
 #endif
 #ifdef CAIRO_HAS_XLIB_SURFACE
   if (PyType_Ready(&PycairoXlibSurface_Type) < 0)
-    return;
+    return NULL;
 #endif
 
-  m = Py_InitModule("cairo._cairo", cairo_functions);
+
+  PyObject *m = PyModule_Create(&cairomodule);
+  //PyObject *m;
+  //m = Py_InitModule("cairo._cairo", cairo_functions);
+  if (m==NULL)
+    return NULL;
+  GETSTATE(m)->ErrorObject = PyErr_NewException("cairo.Error", NULL, NULL);
+  if (GETSTATE(m)->ErrorObject == NULL) {
+    Py_DECREF(m);
+    return NULL;
+  }
+  /* Add 'cairo.Error' to the module */
+  //  if (CairoError == NULL) {
+  //  CairoError = PyErr_NewException("cairo.Error", NULL, NULL);
+  //  if (CairoError == NULL)
+  //    return NULL;
+  //}
+  //Py_INCREF(CairoError);
+  // not needed ?
+  //if (PyModule_AddObject(m, "Error", CairoError) < 0)
+  // return NULL;
+
+
 
   PyModule_AddStringConstant(m, "version", VERSION);
   PyModule_AddObject(m, "version_info",
@@ -321,16 +378,6 @@ init_cairo(void)
 #endif
 
   PyModule_AddObject(m, "CAPI", PyCObject_FromVoidPtr(&CAPI, NULL));
-
-  /* Add 'cairo.Error' to the module */
-  if (CairoError == NULL) {
-    CairoError = PyErr_NewException("cairo.Error", NULL, NULL);
-    if (CairoError == NULL)
-      return;
-  }
-  Py_INCREF(CairoError);
-  if (PyModule_AddObject(m, "Error", CairoError) < 0)
-    return;
 
     /* constants */
 #if CAIRO_HAS_ATSUI_FONT
@@ -493,4 +540,6 @@ init_cairo(void)
   CONSTANT(SUBPIXEL_ORDER_VRGB);
   CONSTANT(SUBPIXEL_ORDER_VBGR);
 #undef CONSTANT
+
+  return m;
 }

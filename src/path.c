@@ -55,15 +55,16 @@ PycairoPath_FromPath (cairo_path_t *path) {
 }
 
 static void
-path_dealloc(PycairoPath *p) {
+path_dealloc(PycairoPath *o) {
 #ifdef DEBUG
   printf("path_dealloc start\n");
 #endif
-  if (p->path) {
-    cairo_path_destroy(p->path);
-    p->path = NULL;
+  if (o->path) {
+    cairo_path_destroy(o->path);
+    o->path = NULL;
   }
-  p->ob_type->tp_free((PyObject *)p);
+  //o->ob_type->tp_free((PyObject *)o);
+  Py_TYPE(o)->tp_free(o);
 #ifdef DEBUG
   printf("path_dealloc end\n");
 #endif
@@ -102,7 +103,7 @@ path_str(PycairoPath *p) {
     case CAIRO_PATH_MOVE_TO:
       PyOS_snprintf(buf, sizeof(buf), "move_to %f %f",
 		    data[1].point.x, data[1].point.y);
-      s = PyString_FromString(buf);
+      s = PyUnicode_FromString(buf);
       if (!s)
 	goto Done;
       ret = PyList_Append(pieces, s);
@@ -114,7 +115,7 @@ path_str(PycairoPath *p) {
     case CAIRO_PATH_LINE_TO:
       PyOS_snprintf(buf, sizeof(buf), "line_to %f %f",
 		    data[1].point.x, data[1].point.y);
-      s = PyString_FromString(buf);
+      s = PyUnicode_FromString(buf);
       if (!s)
 	goto Done;
       ret = PyList_Append(pieces, s);
@@ -128,7 +129,7 @@ path_str(PycairoPath *p) {
 		    data[1].point.x, data[1].point.y,
 		    data[2].point.x, data[2].point.y,
 		    data[3].point.x, data[3].point.y);
-      s = PyString_FromString(buf);
+      s = PyUnicode_FromString(buf);
       if (!s)
 	goto Done;
       ret = PyList_Append(pieces, s);
@@ -138,7 +139,7 @@ path_str(PycairoPath *p) {
       break;
 
     case CAIRO_PATH_CLOSE_PATH:
-      s = PyString_FromString("close path");
+      s = PyUnicode_FromString("close path");
       if (!s)
 	goto Done;
       ret = PyList_Append(pieces, s);
@@ -149,10 +150,10 @@ path_str(PycairoPath *p) {
     }
   }
   /* result = "\n".join(pieces) */
-  s = PyString_FromString("\n");
+  s = PyUnicode_FromString("\n");
   if (s == NULL)
     goto Done;
-  result = _PyString_Join(s, pieces);
+  result = PyUnicode_Join(s, pieces);
   Py_DECREF(s);
 
 Done:
@@ -164,8 +165,9 @@ static PyObject * path_iter(PyObject *seq); /* forward declaration */
 
 
 PyTypeObject PycairoPath_Type = {
-  PyObject_HEAD_INIT(NULL)
-  0,				        /* ob_size */
+  PyVarObject_HEAD_INIT(&PyType_Type, 0)
+  //PyObject_HEAD_INIT(NULL)
+  //0,				        /* ob_size */
   "cairo.Path",			/* tp_name */
   sizeof(PycairoPath),		/* tp_basicsize */
   0,					/* tp_itemsize */
@@ -284,8 +286,9 @@ pathiter_next(PycairoPathiter *it) {
 }
 
 PyTypeObject PycairoPathiter_Type = {
-  PyObject_HEAD_INIT(NULL)
-  0,                                  /* ob_size */
+  PyVarObject_HEAD_INIT(&PyType_Type, 0)
+  //PyObject_HEAD_INIT(NULL)
+  //0,                                  /* ob_size */
   "cairo.Pathiter",                   /* tp_name */
   sizeof(PycairoPathiter),            /* tp_basicsize */
   0,                                  /* tp_itemsize */

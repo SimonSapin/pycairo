@@ -1,0 +1,9 @@
+pycairo 1.8.10 (2010-09-12)
+===========================
+A new version of pycairo which requires and supports Python 3.
+The current pycairo for Python 2 has been renamed to py2cairo.
+
+Waf is the tool used to build and install the package.
+It is licensed under the LGPL version 3.
+The functions image_surface_create_for_data, image_surface_get_data, and
+xpyb2struct use the old Python 2.x buffer protocol, and have been disabled.

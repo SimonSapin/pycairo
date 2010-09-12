@@ -15,4 +15,4 @@ more details.
 You should have received a copy of the GNU Lesser General Public License
 along with pycairo. If not, see <http://www.gnu.org/licenses/>.
 '''
-from _cairo import *
+from ._cairo import *

@@ -5,29 +5,26 @@ Sift through the information in 'git log' since the last release. Summarize
 major changes briefly in a style similar to other entries in NEWS.
 
 2) Increment pycairo and cairo version numbers in:
-   configure.ac
    doc/conf.py
    README
-   setup.py
    wscript
 
-Increment pycairo_major/minor/micro_version in configure.ac
-Increase the cairo_required_version - to an even numbered version.
-Increment pycairo_major/minor version to match the cairo major/minor version
-that pycairo requires (and increment the micro version if necessary for any
-subsequent pycairo updates).
+3) Create the archive
+Delete *.pdf *.png *.ps *.svg files in
+  examples/
+  examples/cairo_snippets/snippets/
 
-3) Run "make distcheck" and verify that it gives no warnings or errors and
-   ends with a message of the form:
+$ ./waf distcheck  # ensure there are no errors
 
-	===============================================
-	pycairo-X.Y.Z archives ready for distribution:
-	pycairo-X.Y.Z.tar.gz
-	===============================================
+$ ./waf clean distclean
+$ ./waf dist  # to create pycairo-x.x.x.tar.bz2
 
-Install from the tar.gz archive, run tests and examples.
+create sha1 sum
+$ sha1sum pycairo-x.x.x.tar.bz2 > pycairo-x.x.x.tar.bz2.sha1
 
-4) Commit the changes to NEWS, configure.ac etc
+Copy to /tmp, install from the archive, run tests and examples.
+
+4) git commit  # the changes to NEWS, etc
 It's especially important to mention the new version number in the git commit
 comment.
 Add a '=== Pycairo x.x.x ===' header.
@@ -54,11 +51,8 @@ $ git push origin master
    Update the pycairo webpage to reference the new release.
    Update http://cheeseshop.python.org entry for pycairo.
 
-7) Edit:
-   configure.ac
-   setup.py
-   wscript
-   to increment pycairo_version_micro to the next larger (odd) number.
+7) Edit wscript to increment pycairo_version_micro to the next larger (odd)
+number.
 $ git push origin master
 
 8) Send a message to cairo-announce@cairographics.org

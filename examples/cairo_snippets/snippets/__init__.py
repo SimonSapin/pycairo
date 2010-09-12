@@ -8,5 +8,5 @@ snip_list.sort()
 
 # function used by some or all snippets
 def snippet_normalize (ctx, width, height):
-    ctx.scale (width, height)
-    ctx.set_line_width (0.04)
+  ctx.scale (width, height)
+  ctx.set_line_width (0.04)
