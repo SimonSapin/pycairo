@@ -24,7 +24,7 @@ $ sha1sum pycairo-x.x.x.tar.bz2 > pycairo-x.x.x.tar.bz2.sha1
 
 Copy to /tmp, install from the archive, run tests and examples.
 
-4) git commit  # the changes to NEWS, etc
+4) git commit  # the changes to NEWS, etc.
 It's especially important to mention the new version number in the git commit
 comment.
 Add a '=== Pycairo x.x.x ===' header.
