@@ -1,4 +1,10 @@
-#
+# top-level .gitignore
 *~
 .lock-wscript
+*.pdf
+*.png
+*.ps
+*.pyc
+*.pyo
+*.svg
 .waf*

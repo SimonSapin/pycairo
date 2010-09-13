@@ -67,29 +67,18 @@ $ git push origin master
               and CC python-announce-list@python.org
    to announce the new release using the template below
 
-	@echo "Please send an announcement to $(RELEASE_ANNOUNCE_LIST)"
-	@echo "including the following:"
-	@echo ""
-	@echo "Subject: ANN: $(PACKAGE) release $(VERSION) now available"
-	@echo ""
-	@echo "============================== CUT HERE =============================="
-	@echo "Pycairo is a set of Python bindings for the multi-platform 2D graphics library cairo."
-	@echo " http://cairographics.org"
-	@echo " http://cairographics.org/pycairo"
-	@echo ""
-	@echo "A new $(PACKAGE) release $(VERSION) is now available from:"
-	@echo ""
-	@echo "	$(RELEASE_URL_BASE)/$(tar_file)"
-	@echo "	$(RELEASE_URL_BASE)/$(md5_file)"
-	@echo ""
-	@echo -n "	"
-	@cat releases/$(md5_file)
-	@echo ""
-	@echo "============================== CUT HERE =============================="
-	@echo "Also, please include the new entries from the NEWS file."
-	@echo ""
-	@echo "Last but not least, do not forget to bump up the micro"
-	@echo "version component to the next (odd) number and commit."
+Subject: ANN: pycairo release X.X.X now available
+
+Pycairo is a set of Python bindings for the multi-platform 2D graphics
+library cairo.
+  http://cairographics.org
+  http://cairographics.org/pycairo
+
+A new pycairo release X.X.X is now available from:
+  http://cairographics.org/releases/pycairo-X.X.X.tar.bz2
+
+  http://cairographics.org/releases/pycairo-X.X.X.tar.bz2.sha1
+  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  pycairo-X.X.X.tar.bz2.sha1
 
 
 
