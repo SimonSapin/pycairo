@@ -8,3 +8,4 @@
 *.pyo
 *.svg
 .waf*
+build_directory

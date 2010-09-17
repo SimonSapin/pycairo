@@ -7,12 +7,15 @@ d = 'src'
 
 def build(ctx):
   print('  %s/build()' %d)
+  pycairoLibDir = os.path.join(ctx.env['LIBDIR'],
+                               'python'+ctx.env['PYTHON_VERSION'],
+                               'site-packages', 'cairo')
 
   # .py files
   ctx.new_task_gen(
     features     = 'py',
     source       = '__init__.py',
-    install_path = '${PYTHONDIR}/cairo',
+    install_path = pycairoLibDir,
     )
 
   # C extension module
@@ -22,7 +25,7 @@ def build(ctx):
     target = '_cairo',
     includes = '.',
     uselib = 'CAIRO',
-    install_path = '${PYTHONDIR}/cairo',
+    install_path = pycairoLibDir,
     )
 
   # C API

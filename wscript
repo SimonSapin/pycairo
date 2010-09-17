@@ -13,6 +13,7 @@ cairo_version_required = '1.8.10'
 
 def set_options(ctx):
   print('  %s/set_options()' %d)
+  ctx.tool_options('gnu_dirs')
   ctx.tool_options('compiler_cc')
   ctx.tool_options('python') # options for disabling pyc or pyo compilation
 
@@ -28,6 +29,7 @@ def configure(ctx):
   print('  %s/configure()' %d)
 
   env = ctx.env
+  ctx.check_tool('gnu_dirs')
   ctx.check_tool('misc')
   ctx.check_tool('compiler_cc')
   ctx.check_tool('python')
@@ -48,8 +50,8 @@ def configure(ctx):
 
   ctx.write_config_header('src/config.h')
 
-  import Options
-  print("%-40s : %s" % ('Prefix', Options.options.prefix))
+  print("%-40s : %s" % ('PREFIX', env['PREFIX']))
+  print("%-40s : %s" % ('LIBDIR', env['LIBDIR']))
 
 
 def build(ctx):
@@ -65,12 +67,7 @@ def build(ctx):
     'prefix'    : ctx.env['PREFIX'],
     'includedir': os.path.join(ctx.env['PREFIX'], 'include'),
     }
-  obj.install_path = os.path.join(ctx.env['PREFIX'], 'lib', 'pkgconfig')
-
-
-#def dist():  # create archives of project
-#  print('  %s/dist()' %d)
-# dist is predefined
+  obj.install_path = os.path.join(ctx.env['LIBDIR'], 'pkgconfig')
 
 
 def dist_hook():
