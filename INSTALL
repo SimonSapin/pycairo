@@ -6,6 +6,10 @@ $ ./waf configure  # use --prefix and --libdir if necessary
 $ ./waf build
 $ ./waf install
 
+Use
+$ python3 ./waf ...
+if you have python2 and python3 installed, and the default is python 2.
+
 
 Testing
 -------
