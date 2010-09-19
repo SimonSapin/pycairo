@@ -50,6 +50,7 @@ def configure(ctx):
 
   ctx.write_config_header('src/config.h')
 
+  print("Configuration:")
   print("%-40s : %s" % ('PREFIX', env['PREFIX']))
   print("%-40s : %s" % ('LIBDIR', env['LIBDIR']))
 

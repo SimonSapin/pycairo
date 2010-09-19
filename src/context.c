@@ -783,23 +783,16 @@ pycairo_scale (PycairoContext *o, PyObject *args) {
 
 static PyObject *
 pycairo_select_font_face (PycairoContext *o, PyObject *args) {
-  PyObject *obj;
+  const char *utf8;
   cairo_font_slant_t slant   = CAIRO_FONT_SLANT_NORMAL;
   cairo_font_weight_t weight = CAIRO_FONT_WEIGHT_NORMAL;
 
-  if (!PyArg_ParseTuple(args, "U|ii:Context.select_font_face",
-			&obj, &slant, &weight))
-    return NULL;
-
-  PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-  if (pyUTF8 == NULL)
-    return NULL;
-  const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-  if (utf8 == NULL)
+  if (!PyArg_ParseTuple (args, "es|ii:Context.select_font_face",
+			 "utf-8", &utf8, &slant, &weight))
     return NULL;
 
   cairo_select_font_face (o->ctx, utf8, slant, weight);
-  Py_XDECREF(pyUTF8);
+  PyMem_Free((void *)utf8);
   RETURN_NULL_IF_CAIRO_CONTEXT_ERROR(o->ctx);
   Py_RETURN_NONE;
 }
@@ -1099,22 +1092,16 @@ pycairo_show_page (PycairoContext *o) {
 
 static PyObject *
 pycairo_show_text (PycairoContext *o, PyObject *args) {
-  PyObject *obj;
+  const char *utf8;
 
-  if (!PyArg_ParseTuple(args, "U:Context.show_text", &obj))
-    return NULL;
-
-  PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-  if (pyUTF8 == NULL)
-    return NULL;
-  const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-  if (utf8 == NULL)
+  if (!PyArg_ParseTuple (args, "es:Context.show_text", "utf-8", &utf8))
     return NULL;
 
   Py_BEGIN_ALLOW_THREADS;
   cairo_show_text (o->ctx, utf8);
   Py_END_ALLOW_THREADS;
-  Py_XDECREF(pyUTF8);
+
+  PyMem_Free((void *)utf8);
   RETURN_NULL_IF_CAIRO_CONTEXT_ERROR(o->ctx);
   Py_RETURN_NONE;
 }
@@ -1147,21 +1134,14 @@ pycairo_stroke_preserve (PycairoContext *o) {
 
 static PyObject *
 pycairo_text_extents (PycairoContext *o, PyObject *args) {
-  PyObject *obj;
-
-  if (!PyArg_ParseTuple(args, "U:Context.text_extents", &obj))
-    return NULL;
-
-  PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-  if (pyUTF8 == NULL)
-    return NULL;
-  const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-  if (utf8 == NULL)
-    return NULL;
-
   cairo_text_extents_t extents;
+  const char *utf8;
+
+  if (!PyArg_ParseTuple (args, "es:Context.text_extents", "utf-8", &utf8))
+    return NULL;
+
   cairo_text_extents (o->ctx, utf8, &extents);
-  Py_XDECREF(pyUTF8);
+  PyMem_Free((void *)utf8);
   RETURN_NULL_IF_CAIRO_CONTEXT_ERROR(o->ctx);
   return Py_BuildValue("(dddddd)", extents.x_bearing, extents.y_bearing,
 		       extents.width, extents.height, extents.x_advance,
@@ -1170,20 +1150,13 @@ pycairo_text_extents (PycairoContext *o, PyObject *args) {
 
 static PyObject *
 pycairo_text_path (PycairoContext *o, PyObject *args) {
-  PyObject *obj;
+  const char *utf8;
 
-  if (!PyArg_ParseTuple(args, "U:Context.text_path", &obj))
-    return NULL;
-
-  PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-  if (pyUTF8 == NULL)
-    return NULL;
-  const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-  if (utf8 == NULL)
+  if (!PyArg_ParseTuple (args, "es:Context.text_path", "utf-8", &utf8))
     return NULL;
 
   cairo_text_path (o->ctx, utf8);
-  Py_XDECREF(pyUTF8);
+  PyMem_Free((void *)utf8);
   RETURN_NULL_IF_CAIRO_CONTEXT_ERROR(o->ctx);
   Py_RETURN_NONE;
 }

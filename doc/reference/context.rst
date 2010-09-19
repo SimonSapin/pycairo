@@ -1409,7 +1409,7 @@ safely be changed, without loosing the current state. Use
    .. method:: text_path(text)
 
       :param text: text
-      :type text: string
+      :type text: str
 
       Adds closed paths for text to the current path. The generated path if
       filled, achieves an effect similar to that of :meth:`Context.show_text`.

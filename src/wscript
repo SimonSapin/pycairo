@@ -10,7 +10,6 @@ def build(ctx):
   pycairoLibDir = os.path.join(ctx.env['LIBDIR'],
                                'python'+ctx.env['PYTHON_VERSION'],
                                'site-packages', 'cairo')
-
   # .py files
   ctx.new_task_gen(
     features     = 'py',
@@ -20,11 +19,18 @@ def build(ctx):
 
   # C extension module
   ctx.new_task_gen(
-    features = 'cc cshlib pyext',
-    source = 'cairomodule.c context.c font.c path.c pattern.c matrix.c surface.c',
-    target = '_cairo',
-    includes = '.',
-    uselib = 'CAIRO',
+    features     = 'cc cshlib pyext',
+    source       = ['cairomodule.c',
+                    'context.c',
+                    'font.c',
+                    'path.c',
+                    'pattern.c',
+                    'matrix.c',
+                    'surface.c',
+                    ],
+    target       = '_cairo',
+    includes     = '.',
+    uselib       = 'CAIRO',
     install_path = pycairoLibDir,
     )
 
