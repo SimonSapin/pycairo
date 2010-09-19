@@ -272,29 +272,30 @@ surface_show_page (PycairoSurface *o) {
 }
 
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
-/* METH_O */
 static PyObject *
-surface_write_to_png (PycairoSurface *o, PyObject *obj) {
+surface_write_to_png (PycairoSurface *o, PyObject *args) {
   cairo_status_t status;
+  PyObject *file;
 
-  if (PyObject_TypeCheck (obj, &PyUnicode_Type)) {
-    /* unicode (filename) argument */
+  if (!PyArg_ParseTuple(args, "O:Surface.write_to_png", &file))
+    return NULL;
 
-    PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 == NULL)
-      return NULL;
-    const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-    if (utf8 == NULL)
+  if (PyObject_TypeCheck (file, &PyUnicode_Type)) {
+    /* filename (str) argument */
+    char *name = NULL;  // the encoded filename
+
+    if (!PyArg_ParseTuple(args, "es:Surface.write_to_png",
+			  Py_FileSystemDefaultEncoding, &name))
       return NULL;
 
     Py_BEGIN_ALLOW_THREADS;
-    status = cairo_surface_write_to_png (o->surface, utf8);
+    status = cairo_surface_write_to_png (o->surface, name);
     Py_END_ALLOW_THREADS;
 
-    Py_XDECREF(pyUTF8);
+    PyMem_Free(name);
 
   } else {  /* file or file-like object argument */
-    PyObject* writer = PyObject_GetAttrString (obj, "write");
+    PyObject* writer = PyObject_GetAttrString (file, "write");
     if (writer == NULL || !PyCallable_Check (writer)) {
       Py_XDECREF(writer);
       PyErr_SetString(PyExc_TypeError,
@@ -305,7 +306,7 @@ surface_write_to_png (PycairoSurface *o, PyObject *obj) {
     Py_DECREF(writer);
     Py_BEGIN_ALLOW_THREADS;
     status = cairo_surface_write_to_png_stream (o->surface, _write_func,
-						obj);
+						file);
     Py_END_ALLOW_THREADS;
   }
   RETURN_NULL_IF_CAIRO_ERROR(status);
@@ -339,7 +340,7 @@ static PyMethodDef surface_methods[] = {
    METH_VARARGS},
   {"show_page",      (PyCFunction)surface_show_page,          METH_NOARGS},
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
-  {"write_to_png",   (PyCFunction)surface_write_to_png,       METH_O },
+  {"write_to_png",   (PyCFunction)surface_write_to_png,       METH_VARARGS},
 #endif
   {NULL, NULL, 0, NULL},
 };
@@ -486,33 +487,32 @@ _read_func (void *closure, unsigned char *data, unsigned int length) {
   return status;
 }
 
-/* METH_O | METH_CLASS */
+/* METH_CLASS */
 static PyObject *
-image_surface_create_from_png (PyTypeObject *type, PyObject *obj) {
-  PyObject* reader;
+image_surface_create_from_png (PyTypeObject *type, PyObject *args) {
   cairo_surface_t *is;
+  PyObject *reader, *file;
 
-  // filename (str)
-  if (PyObject_TypeCheck (obj, &PyUnicode_Type)) {
+  if (!PyArg_ParseTuple(args, "O:ImageSurface.create_from_png", &file))
+    return NULL;
 
-    PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 == NULL)
-      return NULL;
-    const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-    if (utf8 == NULL)
+  if (PyObject_TypeCheck (file, &PyUnicode_Type)) {
+    char *name = NULL;  // the encoded filename
+
+    if (!PyArg_ParseTuple(args, "es:Surface.create_from_png",
+			  Py_FileSystemDefaultEncoding, &name))
       return NULL;
 
     Py_BEGIN_ALLOW_THREADS;
-    is = cairo_image_surface_create_from_png (utf8);
+    is = cairo_image_surface_create_from_png (name);
     Py_END_ALLOW_THREADS;
 
-    Py_XDECREF(pyUTF8);
-
+    PyMem_Free(name);
     return PycairoSurface_FromSurface (is, NULL);
   }
 
   /* file or file-like object argument */
-  reader = PyObject_GetAttrString (obj, "read");
+  reader = PyObject_GetAttrString (file, "read");
   if (reader == NULL || !PyCallable_Check (reader)) {
     Py_XDECREF(reader);
     PyErr_SetString(PyExc_TypeError,
@@ -523,7 +523,7 @@ image_surface_create_from_png (PyTypeObject *type, PyObject *obj) {
   Py_DECREF(reader);
 
   Py_BEGIN_ALLOW_THREADS;
-  is = cairo_image_surface_create_from_png_stream (_read_func, obj);
+  is = cairo_image_surface_create_from_png_stream (_read_func, file);
   Py_END_ALLOW_THREADS;
   return PycairoSurface_FromSurface (is, NULL);
 }
@@ -631,7 +631,7 @@ static PyMethodDef image_surface_methods[] = {
    METH_VARARGS | METH_CLASS},
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
   {"create_from_png", (PyCFunction)image_surface_create_from_png,
-   METH_O | METH_CLASS},
+   METH_VARARGS | METH_CLASS},
 #endif
   {"format_stride_for_width",
    (PyCFunction)image_surface_format_stride_for_width,
@@ -715,20 +715,19 @@ pdf_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
     return PycairoSurface_FromSurface (sfc, NULL);
 
   }else if (PyObject_TypeCheck (obj, &PyUnicode_Type)) {
-    /* string (filename) argument */
+    /* filename (str) argument */
+    char *name = NULL;  // the encoded filename
 
-    PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 == NULL)
-      return NULL;
-    const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-    if (utf8 == NULL)
+    if (!PyArg_ParseTuple(args, "esdd:PDFSurface.__new__",
+			  Py_FileSystemDefaultEncoding,
+			  &name, &width_in_points, &height_in_points))
       return NULL;
 
     Py_BEGIN_ALLOW_THREADS;
-    sfc = cairo_pdf_surface_create (utf8, width_in_points, height_in_points);
+    sfc = cairo_pdf_surface_create (name, width_in_points, height_in_points);
     Py_END_ALLOW_THREADS;
 
-    Py_XDECREF(pyUTF8);
+    PyMem_Free(name);
     return PycairoSurface_FromSurface (sfc, NULL);
   }
 
@@ -840,20 +839,19 @@ ps_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
     return PycairoSurface_FromSurface (sfc, NULL);
 
   }else if (PyObject_TypeCheck (obj, &PyUnicode_Type)) {
-    /* string (filename) argument */
+    /* filename (str) argument */
+    char *name = NULL;  // the encoded filename
 
-    PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 == NULL)
-      return NULL;
-    const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-    if (utf8 == NULL)
+    if (!PyArg_ParseTuple(args, "esdd:PSSurface.__new__",
+			  Py_FileSystemDefaultEncoding,
+			  &name, &width_in_points, &height_in_points))
       return NULL;
 
     Py_BEGIN_ALLOW_THREADS;
-    sfc = cairo_ps_surface_create (utf8, width_in_points, height_in_points);
+    sfc = cairo_ps_surface_create (name, width_in_points, height_in_points);
     Py_END_ALLOW_THREADS;
 
-    Py_XDECREF(pyUTF8);
+    PyMem_Free(name);
     return PycairoSurface_FromSurface (sfc, NULL);
   }
   /* else: file or file-like object argument */
@@ -1044,20 +1042,19 @@ svg_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
     return PycairoSurface_FromSurface (sfc, NULL);
 
   }else if (PyObject_TypeCheck (obj, &PyUnicode_Type)) {
-    /* string (filename) argument */
+    /* filename (str) argument */
+    char *name = NULL;  // the encoded filename
 
-    PyObject *pyUTF8 = PyUnicode_AsUTF8String(obj);
-    if (pyUTF8 == NULL)
-      return NULL;
-    const char *utf8 = PyBytes_AS_STRING(pyUTF8);
-    if (utf8 == NULL)
+    if (!PyArg_ParseTuple(args, "esdd:SVGSurface.__new__",
+			  Py_FileSystemDefaultEncoding,
+			  &name, &width_in_points, &height_in_points))
       return NULL;
 
     Py_BEGIN_ALLOW_THREADS;
-    sfc = cairo_svg_surface_create (utf8, width_in_points, height_in_points);
+    sfc = cairo_svg_surface_create (name, width_in_points, height_in_points);
     Py_END_ALLOW_THREADS;
 
-    Py_XDECREF(pyUTF8);
+    PyMem_Free(name);
     return PycairoSurface_FromSurface (sfc, NULL);
   }
   /* else: file or file-like object argument */
