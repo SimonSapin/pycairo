@@ -70,7 +70,7 @@ Pycairo_Check_Status (cairo_status_t status) {
 }
 
 
-/* C API.  Clients get at this via Pycairo_IMPORT, defined in pycairo.h.
+/* C API.  Clients get at this via import_cairo(), defined in pycairo.h.
  */
 static Pycairo_CAPI_t CAPI = {
   &PycairoContext_Type,
@@ -268,8 +268,6 @@ PyInit__cairo(void)
 
 
   PyObject *m = PyModule_Create(&cairomodule);
-  //PyObject *m;
-  //m = Py_InitModule("cairo._cairo", cairo_functions);
   if (m==NULL)
     return NULL;
   GETSTATE(m)->ErrorObject = PyErr_NewException("cairo.Error", NULL, NULL);
@@ -277,18 +275,6 @@ PyInit__cairo(void)
     Py_DECREF(m);
     return NULL;
   }
-  /* Add 'cairo.Error' to the module */
-  //  if (CairoError == NULL) {
-  //  CairoError = PyErr_NewException("cairo.Error", NULL, NULL);
-  //  if (CairoError == NULL)
-  //    return NULL;
-  //}
-  //Py_INCREF(CairoError);
-  // not needed ?
-  //if (PyModule_AddObject(m, "Error", CairoError) < 0)
-  // return NULL;
-
-
 
   PyModule_AddStringConstant(m, "version", VERSION);
   PyModule_AddObject(m, "version_info",
@@ -377,9 +363,7 @@ PyInit__cairo(void)
 		     (PyObject *)&PycairoXlibSurface_Type);
 #endif
 
-  PyModule_AddObject(m, "CAPI", PyCObject_FromVoidPtr(&CAPI, NULL));
-
-    /* constants */
+  /* constants */
 #if CAIRO_HAS_ATSUI_FONT
   PyModule_AddIntConstant(m, "HAS_ATSUI_FONT", 1);
 #else
@@ -540,6 +524,12 @@ PyInit__cairo(void)
   CONSTANT(SUBPIXEL_ORDER_VRGB);
   CONSTANT(SUBPIXEL_ORDER_VBGR);
 #undef CONSTANT
+
+  /* Create a Capsule containing the CAPI pointer */
+  PyObject *T = PyCapsule_New((void *)(&CAPI), "cairo.CAPI", 0);
+  if (T != NULL) {
+    PyModule_AddObject(m, "CAPI", T);
+  }
 
   return m;
 }
