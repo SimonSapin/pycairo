@@ -1,11 +1,14 @@
 # top-level .gitignore
 *~
-.lock-wscript
+
 *.pdf
 *.png
 *.ps
 *.pyc
 *.pyo
 *.svg
+
+.lock*
 .waf*
+
 build_directory

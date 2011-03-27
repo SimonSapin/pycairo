@@ -8,21 +8,14 @@ d = top
 
 APPNAME='pycairo'
 VERSION='1.8.11'
-cairo_version_required = '1.8.10'
+cairo_version_required = '1.10.0'
 
 
-def set_options(ctx):
-  print('  %s/set_options()' %d)
+def options(ctx):
+  print('  %s/options()' %d)
   ctx.tool_options('gnu_dirs')
   ctx.tool_options('compiler_cc')
   ctx.tool_options('python') # options for disabling pyc or pyo compilation
-
-
-def init():  # run at start of any waf invocation
-  print('  %s/init()' %d)
-
-def shutdown():  # run at end of any waf invocation
-  print('  %s/shutdown()' %d)
 
 
 def configure(ctx):
@@ -30,7 +23,6 @@ def configure(ctx):
 
   env = ctx.env
   ctx.check_tool('gnu_dirs')
-  ctx.check_tool('misc')
   ctx.check_tool('compiler_cc')
   ctx.check_tool('python')
   ctx.check_python_version((3,1,0))
@@ -57,18 +49,20 @@ def configure(ctx):
 
 def build(ctx):
   print('  %s/build()' %d)
-  ctx.add_subdirs('src')
+  ctx.recurse('src')
 
   # generate and install the .pc file
-  obj = ctx.new_task_gen('subst')
-  obj.source = 'py3cairo.pc.in'
-  obj.target = 'py3cairo.pc'
-  obj.dict = {
-    'VERSION'   : VERSION,
-    'prefix'    : ctx.env['PREFIX'],
-    'includedir': os.path.join(ctx.env['PREFIX'], 'include'),
-    }
-  obj.install_path = os.path.join(ctx.env['LIBDIR'], 'pkgconfig')
+  ctx(
+    features = 'subst',
+    source   = 'py3cairo.pc.in',
+    target   = 'py3cairo.pc',
+    dct      = {
+      'VERSION'   : VERSION,
+      'prefix'    : ctx.env['PREFIX'],
+      'includedir': os.path.join(ctx.env['PREFIX'], 'include'),
+      },
+    install_path = os.path.join(ctx.env['LIBDIR'], 'pkgconfig'),
+    )
 
 
 def dist_hook():
