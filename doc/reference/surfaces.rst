@@ -257,6 +257,10 @@ those defined in :ref:`FORMAT attributes <constants_FORMAT>`.
 
    .. classmethod:: create_for_data(data, format, width, height[, stride])
 
+      Not yet available in Python 3
+
+   .. comment block - the old docs
+
       :param data: a writable Python buffer object
       :param format: the :ref:`FORMAT <constants_FORMAT>` of pixels in the
         buffer
@@ -309,6 +313,9 @@ those defined in :ref:`FORMAT attributes <constants_FORMAT>`.
 
    .. method:: get_data()
 
+      Not yet available in Python 3
+
+   .. comment block - old docs:
       :returns: a Python buffer object for the data of the *ImageSurface*, for direct inspection or modification.
 
       .. versionadded:: 1.2
@@ -644,8 +651,8 @@ The Win32PrintingSurface is a multi-page vector surface type.
    ignored, and GDI will be used as much as possible to draw to the surface.
 
    The returned surface will be wrapped using the paginated surface to provide
-   correct complex rendering behaviour; :meth:`.show_page` and associated
-   methods must be used for correct output.
+   correct complex rendering behaviour; :meth:`cairo.Surface.show_page` and
+   associated methods must be used for correct output.
 
 
 class XCBSurface(:class:`Surface`)
