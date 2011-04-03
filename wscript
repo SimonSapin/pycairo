@@ -65,25 +65,23 @@ def build(ctx):
     )
 
 
-def dist_hook():
-  # remove unwanted files from the archive
-
-  # individual files
-  for f in [
+def dist(ctx):
+  # exclude these files from the distribution archive
+  exclude  = (
     'RELEASING',
     'examples/cairo_snippets/c_to_python.py',
     'doc/html_docs_create.sh',
     'doc/html_docs_upload.sh',
-    ]:
-    os.remove(f)
 
-  # rm examples/*.{pdf,png,ps,svg}
-  D='examples'
-  for f in os.listdir(D):
-    if f.endswith(('.pdf', '.png', '.ps', '.svg')):
-      os.remove(os.path.join(D, f))
+    '.git/',
+    '**/.gitignore',
+    '**/.lock-w*',
+    '.waf3*',
 
-  D='examples/cairo_snippets/snippets'
-  for f in os.listdir(D):
-    if f.endswith(('.pdf', '.png', '.ps', '.svg')):
-      os.remove(os.path.join(D, f))
+    '**/*.pdf',
+    '**/*.png',
+    '**/*.pyc',
+    '**/*.ps',
+    '**/*.svg',
+    )
+  ctx.excl = ' '.join(exclude)
