@@ -1,28 +1,30 @@
-Here are the steps to follow to create a new pycairo release:
+Steps to follow to create a new pycairo release
+-----------------------------------------------
 
-1) Fill out an entry in the NEWS file
+1) Add a new NEWS entry
 Sift through the information in 'git log' since the last release. Summarize
 major changes briefly in a style similar to other entries in NEWS.
+
 
 2) Increment pycairo and cairo version numbers in:
    doc/conf.py
    README
    wscript
 
+
 3) Create the archive
-Delete *.pdf *.png *.ps *.svg files in
-  examples/
-  examples/cairo_snippets/snippets/
+$ cd doc
+$ make clean; make html  # view docs and ensure version number is correct
 
 $ ./waf distcheck  # ensure there are no errors
-
+                     rm ./pycairo-X.X.X
 $ ./waf clean distclean
-$ ./waf dist  # to create pycairo-x.x.x.tar.bz2
-
-create sha1 sum
+$ ./waf dist       # to create pycairo-x.x.x.tar.bz2
+                   # create sha1 sum
 $ sha1sum pycairo-x.x.x.tar.bz2 > pycairo-x.x.x.tar.bz2.sha1
 
 Copy to /tmp, install from the archive, run tests and examples.
+
 
 4) git commit  # the changes to NEWS, etc.
 It's especially important to mention the new version number in the git commit
@@ -81,9 +83,8 @@ A new pycairo release X.X.X is now available from:
   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  pycairo-X.X.X.tar.bz2.sha1
 
 
-
-Generating documentation archives
----------------------------------
+9) Generating documentation archives
+------------------------------------
 $ cd doc/
 $ vi conf.py  # update the version and release numbers
 $ make clean

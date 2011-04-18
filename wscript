@@ -7,7 +7,7 @@ out = 'build_directory'
 d = top
 
 APPNAME='pycairo'
-VERSION='1.8.11'
+VERSION='1.10.0'
 cairo_version_required = '1.10.0'
 
 
