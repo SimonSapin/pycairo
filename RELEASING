@@ -23,7 +23,8 @@ $ ./waf dist       # to create pycairo-x.x.x.tar.bz2
                    # create sha1 sum
 $ sha1sum pycairo-x.x.x.tar.bz2 > pycairo-x.x.x.tar.bz2.sha1
 
-Copy to /tmp, install from the archive, run tests and examples.
+cp pycairo* /tmp
+# install from the archive, run tests and examples.
 
 
 4) git commit  # the changes to NEWS, etc.
@@ -35,23 +36,11 @@ $ git tag X.Y.Z
   push the changes to the freedesktop server.
 $ git push origin master
 
+
 5) Copy the archive to the cairo download server
-chmod a+r /tmp/pycairo*
-scp pycairo-x.x.x.tar.bz2 pycairo-x.x.x.tar.bz2.sha1 cairographics.org:/srv/cairo.freedesktop.org/www/releases
+$ chmod a+r /tmp/pycairo*
 
-old Makefile rules:
-RELEASE_UPLOAD_HOST =   cairographics.org
-RELEASE_UPLOAD_BASE =	/srv/cairo.freedesktop.org/www
-RELEASE_UPLOAD_DIR =	$(RELEASE_UPLOAD_BASE)/releases
-RELEASE_ANNOUNCE_LIST = cairo-announce@cairographics.org (and CC python-announce-list@python.org)
-RELEASE_URL_BASE = 	http://cairographics.org/releases
-
-tar_file = $(PACKAGE)-$(VERSION).tar.gz
-md5_file = $(tar_file).md5
-
-scp $(tar_file) $(md5_file) $(RELEASE_UPLOAD_HOST):$(RELEASE_UPLOAD_DIR)
-mv $(tar_file) $(md5_file) releases
-ssh $(RELEASE_UPLOAD_HOST) "rm -f $(RELEASE_UPLOAD_DIR)/LATEST-$(PACKAGE)-[0-9]* && ln -s $(tar_file) $(RELEASE_UPLOAD_DIR)/LATEST-$(PACKAGE)-$(VERSION)"
+$ scp pycairo-x.x.x.tar.bz2 pycairo-x.x.x.tar.bz2.sha1 cairographics.org:/srv/cairo.freedesktop.org/www/releases
 
 
 6) Verify that the tar file arrived at the website.
@@ -60,12 +49,7 @@ ssh $(RELEASE_UPLOAD_HOST) "rm -f $(RELEASE_UPLOAD_DIR)/LATEST-$(PACKAGE)-[0-9]*
    Update http://cheeseshop.python.org entry for pycairo.
 
 
-7) Edit ./wscript to increment VERSION to the next larger (odd) number.
-$ git commit
-$ git push origin master
-
-
-8) Send a message to cairo-announce@cairographics.org
+7) Send a message to cairo-announce@cairographics.org
               and CC python-announce-list@python.org
    to announce the new release using the template below
 
@@ -76,30 +60,26 @@ library cairo.
   http://cairographics.org
   http://cairographics.org/pycairo
 
-A new pycairo release X.X.X is now available from:
+A pycairo release X.X.X is available from:
   http://cairographics.org/releases/pycairo-X.X.X.tar.bz2
-
   http://cairographics.org/releases/pycairo-X.X.X.tar.bz2.sha1
-  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  pycairo-X.X.X.tar.bz2.sha1
+
+<insert NEWS here ...>
 
 
-9) Generating documentation archives
-------------------------------------
-$ cd doc/
-$ vi conf.py  # update the version and release numbers
-$ make clean
-$ make html
-$ cd .build/
-$ mv html pycairo-x.x.x-docs-html
-$ tar cjf /tmp/pycairo-x.x.x-docs-html.tar.bz2 pycairo-x.x.x-docs-html
-$ zip -r  /tmp/pycairo-x.x.x-docs-html.zip     pycairo-x.x.x-docs-html
-$ chmod a+r /tmp/pycairo*
+8) Generate documentation and copy to cairo web server
+$ cd doc/_build/html
+$ tar cjf /tmp/html.tar.bz2 *  # adds files to top level of archive
+$ scp /tmp/html.tar.bz2 cairographics.org:/srv/cairo.freedesktop.org/www/documentation/pycairo/3
+$ ssh cairographics.org
+  # login and untar the file
+  # test pycairo docs can be read from web
+  # check everyone has read permission (and 'x' for dirs)
 
-untar docs in /tmp and check that they have correct version number and view
-OK.
-copy file to the 'releases' directory on cairo website:
-  scp pycairo-x.x.x-docs-html.tar.bz2 cairographics.org:/srv/cairo.freedesktop.org/www/releases
 
-cd doc
- html_docs_create.sh
- html_docs_upload.sh
+9) Increment pycairo version number, to next odd number in:
+   doc/conf.py
+   README
+   wscript
+$ git commit
+$ git push origin master
