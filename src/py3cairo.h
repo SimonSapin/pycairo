@@ -1,6 +1,7 @@
 /* -*- mode: C; c-basic-offset: 2 -*-
  *
- * Copyright © 2003,2010 James Henstridge, Steven Chaplin
+ * Copyright © 2003 James Henstridge
+ * Copyright © 2004-2011 Steven Chaplin
  *
  * This file is part of pycairo.
  *
@@ -76,14 +77,15 @@ typedef struct {
   PyObject *base; /* base object used to create surface, or NULL */
 } PycairoSurface;
 
-#define PycairoImageSurface PycairoSurface
-#define PycairoPDFSurface   PycairoSurface
-#define PycairoPSSurface    PycairoSurface
-#define PycairoSVGSurface   PycairoSurface
-#define PycairoWin32Surface PycairoSurface
+#define PycairoImageSurface         PycairoSurface
+#define PycairoPDFSurface           PycairoSurface
+#define PycairoPSSurface            PycairoSurface
+#define PycairoRecordingSurface     PycairoSurface
+#define PycairoSVGSurface           PycairoSurface
+#define PycairoWin32Surface         PycairoSurface
 #define PycairoWin32PrintingSurface PycairoSurface
-#define PycairoXCBSurface   PycairoSurface
-#define PycairoXlibSurface  PycairoSurface
+#define PycairoXCBSurface           PycairoSurface
+#define PycairoXlibSurface          PycairoSurface
 
 /* get C object out of the Python wrapper */
 #define PycairoContext_GET(obj)    (((PycairoContext *)(obj))->ctx)
@@ -120,6 +122,7 @@ typedef struct {
   PyTypeObject *ImageSurface_Type;
   PyTypeObject *PDFSurface_Type;
   PyTypeObject *PSSurface_Type;
+  PyTypeObject *RecordingSurface_Type;
   PyTypeObject *SVGSurface_Type;
   PyTypeObject *Win32Surface_Type;
   PyTypeObject *Win32PrintingSurface_Type;
@@ -169,6 +172,11 @@ typedef struct {
 
 #if CAIRO_HAS_PS_SURFACE
 #define PycairoPSSurface_Type       *(Pycairo_CAPI->PSSurface_Type)
+#endif
+
+#if CAIRO_HAS_RECORDING_SURFACE
+#define PycairoRecordingSurface_Type \
+                                    *(Pycairo_CAPI->RecordingSurface_Type)
 #endif
 
 #if CAIRO_HAS_SVG_SURFACE

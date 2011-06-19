@@ -1,6 +1,7 @@
 /* -*- mode: C; c-basic-offset: 2 -*-
  *
- * Copyright © 2003,2010 James Henstridge, Steven Chaplin
+ * Copyright © 2003 James Henstridge
+ * Copyright © 2004-2011 Steven Chaplin
  *
  * This file is part of pycairo.
  *
@@ -73,6 +74,10 @@ extern PyTypeObject PycairoPDFSurface_Type;
 
 #if CAIRO_HAS_PS_SURFACE
 extern PyTypeObject PycairoPSSurface_Type;
+#endif
+
+#if CAIRO_HAS_RECORDING_SURFACE
+extern PyTypeObject PycairoRecordingSurface_Type;
 #endif
 
 #if CAIRO_HAS_SVG_SURFACE

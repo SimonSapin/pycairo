@@ -1,6 +1,7 @@
 /* -*- mode: C; c-basic-offset: 2 -*-
  *
- * Copyright © 2003,2010 James Henstridge, Steven Chaplin
+ * Copyright © 2003 James Henstridge
+ * Copyright © 2004-2011 Steven Chaplin
  *
  * This file is part of pycairo.
  *
@@ -31,6 +32,7 @@
  *   PycairoImageSurface,
  *   PycairoPDFSurface,
  *   PycairoPSSurface,
+ *   PycairoRecordingSurface,
  *   PycairoSVGSurface,
  *   PycairoWin32Surface,
  *   PycairoWin32PrintingSurface,
@@ -70,6 +72,11 @@ PycairoSurface_FromSurface (cairo_surface_t *surface, PyObject *base) {
 #if CAIRO_HAS_PS_SURFACE
   case CAIRO_SURFACE_TYPE_PS:
     type = &PycairoPSSurface_Type;
+    break;
+#endif
+#if CAIRO_HAS_RECORDING_SURFACE
+  case CAIRO_SURFACE_TYPE_RECORDING:
+    type = &PycairoRecordingSurface_Type;
     break;
 #endif
 #if CAIRO_HAS_SVG_SURFACE
@@ -348,8 +355,6 @@ static PyMethodDef surface_methods[] = {
 
 PyTypeObject PycairoSurface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.Surface",                    /* tp_name */
   sizeof(PycairoSurface),             /* tp_basicsize */
   0,                                  /* tp_itemsize */
@@ -647,8 +652,6 @@ static PyMethodDef image_surface_methods[] = {
 
 PyTypeObject PycairoImageSurface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //  PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.ImageSurface",               /* tp_name */
   sizeof(PycairoImageSurface),        /* tp_basicsize */
   0,                                  /* tp_itemsize */
@@ -772,8 +775,6 @@ static PyMethodDef pdf_surface_methods[] = {
 
 PyTypeObject PycairoPDFSurface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //  PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.PDFSurface",                 /* tp_name */
   sizeof(PycairoPDFSurface),          /* tp_basicsize */
   0,                                  /* tp_itemsize */
@@ -975,8 +976,6 @@ static PyMethodDef ps_surface_methods[] = {
 
 PyTypeObject PycairoPSSurface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.PSSurface",                  /* tp_name */
   sizeof(PycairoPSSurface),           /* tp_basicsize */
   0,                                  /* tp_itemsize */
@@ -1019,6 +1018,97 @@ PyTypeObject PycairoPSSurface_Type = {
   0,                                  /* tp_bases */
 };
 #endif  /* CAIRO_HAS_PS_SURFACE */
+
+
+/* Class RecordingSurface(Surface) ---------------------------------------- */
+#ifdef CAIRO_HAS_RECORDING_SURFACE
+
+static PyObject *
+recording_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
+  int content;
+  cairo_rectangle_t extents, *extents_ptr;
+  cairo_surface_t *sfc;
+  PyObject *extents_tuple;
+
+  if (!PyArg_ParseTuple(args, "iO:RecordingSurface.__new__",
+			&content, &extents_tuple))
+    return NULL;
+
+  if (extents_tuple == Py_None) {
+    extents_ptr = NULL;
+  } else {
+    if (!PyArg_ParseTuple(extents_tuple, "dddd", &extents.x, &extents.y,
+			  &extents.width, &extents.height)) {
+      PyErr_SetString(PyExc_TypeError,
+		      "RecordingSurface() argument 2 must be a "
+		      "4-tuple of float");
+      return NULL;
+    }
+    extents_ptr = &extents;
+  }
+
+  Py_BEGIN_ALLOW_THREADS;
+  sfc = cairo_recording_surface_create (content, extents_ptr);
+  Py_END_ALLOW_THREADS;
+  return PycairoSurface_FromSurface (sfc, NULL);
+}
+
+static PyObject *
+recording_surface_ink_extents (PycairoRecordingSurface *o) {
+  double x0, y0, width, height;
+  cairo_recording_surface_ink_extents(o->surface, &x0, &y0, &width, &height);
+  return Py_BuildValue("(dddd)", x0, y0, width, height);
+}
+
+static PyMethodDef recording_surface_methods[] = {
+  {"ink_extents", (PyCFunction)recording_surface_ink_extents, METH_NOARGS },
+  {NULL, NULL, 0, NULL},
+};
+
+PyTypeObject PycairoRecordingSurface_Type = {
+  PyVarObject_HEAD_INIT(&PyType_Type, 0)
+  "cairo.RecordingSurface",           /* tp_name */
+  sizeof(PycairoRecordingSurface),    /* tp_basicsize */
+  0,                                  /* tp_itemsize */
+  0,                                  /* tp_dealloc */
+  0,                                  /* tp_print */
+  0,                                  /* tp_getattr */
+  0,                                  /* tp_setattr */
+  0,                                  /* tp_compare */
+  0,                                  /* tp_repr */
+  0,                                  /* tp_as_number */
+  0,                                  /* tp_as_sequence */
+  0,                                  /* tp_as_mapping */
+  0,                                  /* tp_hash */
+  0,                                  /* tp_call */
+  0,                                  /* tp_str */
+  0,                                  /* tp_getattro */
+  0,                                  /* tp_setattro */
+  0,                                  /* tp_as_buffer */
+  Py_TPFLAGS_DEFAULT,                 /* tp_flags */
+  0,                                  /* tp_doc */
+  0,                                  /* tp_traverse */
+  0,                                  /* tp_clear */
+  0,                                  /* tp_richcompare */
+  0,                                  /* tp_weaklistoffset */
+  0,                                  /* tp_iter */
+  0,                                  /* tp_iternext */
+  recording_surface_methods,          /* tp_methods */
+  0,                                  /* tp_members */
+  0,                                  /* tp_getset */
+  &PycairoSurface_Type,               /* tp_base */
+  0,                                  /* tp_dict */
+  0,                                  /* tp_descr_get */
+  0,                                  /* tp_descr_set */
+  0,                                  /* tp_dictoffset */
+  0,                                  /* tp_init */
+  0,                                  /* tp_alloc */
+  (newfunc)recording_surface_new,     /* tp_new */
+  0,                                  /* tp_free */
+  0,                                  /* tp_is_gc */
+  0,                                  /* tp_bases */
+};
+#endif /* CAIRO_HAS_RECORDING_SURFACE */
 
 
 /* Class SVGSurface(Surface) ----------------------------------------------- */
@@ -1090,8 +1180,6 @@ static PyMethodDef svg_surface_methods[] = {
 
 PyTypeObject PycairoSVGSurface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.SVGSurface",                 /* tp_name */
   sizeof(PycairoSVGSurface),          /* tp_basicsize */
   0,                                  /* tp_itemsize */
@@ -1156,8 +1244,6 @@ static PyMethodDef win32_surface_methods[] = {
 
 PyTypeObject PycairoWin32Surface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.Win32Surface",               /* tp_name */
   sizeof(PycairoWin32Surface),        /* tp_basicsize */
   0,                                  /* tp_itemsize */
@@ -1219,8 +1305,6 @@ static PyMethodDef win32_printing_surface_methods[] = {
 
 PyTypeObject PycairoWin32PrintingSurface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.Win32PrintingSurface",       /* tp_name */
   sizeof(PycairoWin32PrintingSurface), /* tp_basicsize */
   0,                                  /* tp_itemsize */
@@ -1369,8 +1453,6 @@ static PyMethodDef xcb_surface_methods[] = {
 
 PyTypeObject PycairoXCBSurface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.XCBSurface",                 /* tp_name */
   sizeof(PycairoXCBSurface),          /* tp_basicsize */
   0,                                  /* tp_itemsize */
@@ -1450,8 +1532,6 @@ static PyMethodDef xlib_surface_methods[] = {
 
 PyTypeObject PycairoXlibSurface_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.XlibSurface",                /* tp_name */
   sizeof(PycairoXlibSurface),         /* tp_basicsize */
   0,                                  /* tp_itemsize */

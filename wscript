@@ -8,7 +8,7 @@ d = top
 
 APPNAME='pycairo'
 VERSION='1.10.1'
-cairo_version_required = '1.10.0'
+cairo_version_required = '1.10.2'
 
 
 def options(ctx):

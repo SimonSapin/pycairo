@@ -16,15 +16,18 @@ major changes briefly in a style similar to other entries in NEWS.
 $ cd doc
 $ make clean; make html  # view docs and ensure version number is correct
 
+$ cd ..
 $ ./waf distcheck  # ensure there are no errors
-                     rm ./pycairo-X.X.X
+$ rm -rf py2cairo-X.X.X*
+
 $ ./waf clean distclean
 $ ./waf dist       # to create pycairo-x.x.x.tar.bz2
                    # create sha1 sum
 $ sha1sum pycairo-x.x.x.tar.bz2 > pycairo-x.x.x.tar.bz2.sha1
+  # ensure html docs are present in the archive
 
-cp pycairo* /tmp
-# install from the archive, run tests and examples.
+$ mv pycairo-X.X.X* /tmp
+  # install from the archive, run tests and examples.
 
 
 4) git commit  # the changes to NEWS, etc.
@@ -39,7 +42,6 @@ $ git push origin master
 
 5) Copy the archive to the cairo download server
 $ chmod a+r /tmp/pycairo*
-
 $ scp pycairo-x.x.x.tar.bz2 pycairo-x.x.x.tar.bz2.sha1 cairographics.org:/srv/cairo.freedesktop.org/www/releases
 
 
@@ -55,12 +57,12 @@ $ scp pycairo-x.x.x.tar.bz2 pycairo-x.x.x.tar.bz2.sha1 cairographics.org:/srv/ca
 
 Subject: ANN: pycairo release X.X.X now available
 
-Pycairo is a set of Python bindings for the multi-platform 2D graphics
-library cairo.
+Pycairo is a set of Python 3.x bindings for the multi-platform 2D
+graphics library cairo.
   http://cairographics.org
   http://cairographics.org/pycairo
 
-A pycairo release X.X.X is available from:
+Pycairo release X.X.X is available from:
   http://cairographics.org/releases/pycairo-X.X.X.tar.bz2
   http://cairographics.org/releases/pycairo-X.X.X.tar.bz2.sha1
 
@@ -79,7 +81,6 @@ $ ssh cairographics.org
 
 9) Increment pycairo version number, to next odd number in:
    doc/conf.py
-   README
    wscript
 $ git commit
 $ git push origin master
