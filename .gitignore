@@ -10,5 +10,9 @@
 
 .lock*
 .waf*
+waf.*
 
+build
 build_directory
+
+src/config.h
