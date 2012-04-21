@@ -255,7 +255,7 @@ PyInit__cairo(void)
 #endif
 #ifdef CAIRO_HAS_RECORDING_SURFACE
   if (PyType_Ready(&PycairoRecordingSurface_Type) < 0)
-    return;
+    return NULL;
 #endif
 #ifdef CAIRO_HAS_SVG_SURFACE
   if (PyType_Ready(&PycairoSVGSurface_Type) < 0)

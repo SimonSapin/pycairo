@@ -313,12 +313,9 @@ those defined in :ref:`FORMAT attributes <constants_FORMAT>`.
 
    .. method:: get_data()
 
-      Not yet available in Python 3
+      :returns: a Python memoryview for the data of the *ImageSurface*, for direct inspection or modification.
 
-   .. comment block - old docs:
-      :returns: a Python buffer object for the data of the *ImageSurface*, for direct inspection or modification.
-
-      .. versionadded:: 1.2
+      .. versionadded:: 1.10.0
 
    .. method:: get_format()
 

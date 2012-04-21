@@ -546,9 +546,7 @@ image_surface_format_stride_for_width (PyObject *self, PyObject *args) {
 
 static PyObject *
 image_surface_get_data (PycairoImageSurface *o) {
-  PyErr_SetString(PyExc_NotImplementedError, "Surface.get_data: Not Implemented yet.");
-  return NULL;
-  // return PyBuffer_FromReadWriteObject((PyObject *)o, 0, Py_END_OF_BUFFER);
+  return PyMemoryView_FromObject((PyObject*)o);
 }
 
 static PyObject *
@@ -571,6 +569,24 @@ image_surface_get_width (PycairoImageSurface *o) {
   return PyLong_FromLong (cairo_image_surface_get_width (o->surface));
 }
 
+
+/* Buffer interface functions, used by ImageSurface.get_data() */
+static int
+image_surface_buffer_getbufferproc (PycairoImageSurface *o, Py_buffer *view,
+				                    int flags) {
+  cairo_surface_t *surface = o->surface;
+  int height, stride;
+  void *data;
+
+  height = cairo_image_surface_get_height (surface);
+  stride = cairo_image_surface_get_stride (surface);
+  data   = cairo_image_surface_get_data   (surface);
+
+  if(!PyBuffer_FillInfo(view, (PyObject *)o, data,
+        height * stride, 0, PyBUF_CONTIG))
+    return 0;
+  return -1;
+}
 
 /* Buffer interface functions, used by ImageSurface.get_data() */
 /*
@@ -630,6 +646,11 @@ static PyBufferProcs image_surface_as_buffer = {
   (charbufferproc) NULL,
 };
 */
+static PyBufferProcs image_surface_as_buffer = {
+  (getbufferproc) image_surface_buffer_getbufferproc,
+  (releasebufferproc) NULL,
+};
+
 
 static PyMethodDef image_surface_methods[] = {
   {"create_for_data",(PyCFunction)image_surface_create_for_data,
@@ -669,8 +690,7 @@ PyTypeObject PycairoImageSurface_Type = {
   0,                                  /* tp_str */
   0,                                  /* tp_getattro */
   0,                                  /* tp_setattro */
-  //  &image_surface_as_buffer,		/* tp_as_buffer */
-  0,                    		/* tp_as_buffer */
+  &image_surface_as_buffer,           /* tp_as_buffer */
   Py_TPFLAGS_DEFAULT,                 /* tp_flags */
   0,                                  /* tp_doc */
   0,                                  /* tp_traverse */
