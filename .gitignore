@@ -15,4 +15,6 @@ waf.*
 build
 build_directory
 
+py3cairo.pc
+
 src/config.h

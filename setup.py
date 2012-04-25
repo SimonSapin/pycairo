@@ -9,8 +9,8 @@ import os
 import subprocess
 import sys
 
-pycairo_version        = '1.10.0'
-cairo_version_required = '1.10.0'
+pycairo_version        = '1.10.1'
+cairo_version_required = '1.10.2'
 python_version_required = (3,0)
 pkgconfig_file = 'py3cairo.pc'
 config_file    = 'src/config.h'
@@ -24,13 +24,13 @@ def call(command):
   return pipe
 
 def pkg_config_version_check(pkg, version):
-  pipe = call('pkg-config --print-errors --exists "%s >= %s"' %
-              (pkg, version))
+  check = '%s >= %s' % (pkg, version)
+  pipe = call("pkg-config --print-errors --exists '%s'" % (check,))
   if pipe.returncode == 0:
-    print('%s >= %s detected' % (pkg, version))
+    print(check, ' Successful')
   else:
-    print(pipe.stderr.read())
-    raise SystemExit('Error: %s >= %s not found' % (pkg, version))
+    print(check, ' Failed')
+    raise SystemExit(pipe.stderr.read().decode())
 
 def pkg_config_parse(opt, pkg):
   pipe = call("pkg-config %s %s" % (opt, pkg))

@@ -9,11 +9,11 @@ import cairo
 if not (cairo.HAS_IMAGE_SURFACE and cairo.HAS_PNG_FUNCTIONS):
   raise SystemExit ('cairo was not compiled with ImageSurface and PNG support')
 
-w, h = 128, 128
+width, height = 128, 128
 
-def create_surface():
+def create_surface(cformat, w, h):
   "create black triangle on white background"
-  surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+  surface = cairo.ImageSurface(cformat, w, h)
   ctx = cairo.Context(surface)
 
   ctx.set_source_rgb(1, 1, 1)  # white
@@ -34,13 +34,13 @@ def create_surface():
 
 def test_python_buffer():
   "get_data() and modify data using Python"
-  surface = create_surface()
+  surface = create_surface(cairo.FORMAT_ARGB32, width, height)
   _, f1 = tempfile.mkstemp(prefix='pycairo_', suffix='.png')
   surface.write_to_png(f1)
 
   buf = surface.get_data()
   stride = surface.get_stride()
-  for i in range(h):
+  for i in range(height):
       offset = i * stride + 120
       buf[offset]     = b'\xFF'
       buf[offset + 1] = b'\x00'
@@ -63,7 +63,7 @@ def test_numpy_and_python_buffer():
     print("numpy not installed")
     return
 
-  surface = create_surface()
+  surface = create_surface(cairo.FORMAT_ARGB32, width, height)
   _, f1 = tempfile.mkstemp(prefix='pycairo_', suffix='.png')
   surface.write_to_png(f1)
 
