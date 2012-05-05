@@ -257,11 +257,7 @@ those defined in :ref:`FORMAT attributes <constants_FORMAT>`.
 
    .. classmethod:: create_for_data(data, format, width, height[, stride])
 
-      Not yet available in Python 3
-
-   .. comment block - the old docs
-
-      :param data: a writable Python buffer object
+      :param data: an object which implements the read-write buffer interface
       :param format: the :ref:`FORMAT <constants_FORMAT>` of pixels in the
         buffer
       :param width: the width of the image to be stored in the buffer

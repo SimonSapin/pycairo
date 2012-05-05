@@ -113,6 +113,8 @@ PycairoSurface_FromSurface (cairo_surface_t *surface, PyObject *base) {
     ((PycairoSurface *)o)->surface = surface;
     Py_XINCREF(base);
     ((PycairoSurface *)o)->base = base;
+
+    ((PycairoSurface *)o)->buffer.buf = NULL;
   }
   return o;
 }
@@ -124,8 +126,6 @@ PycairoSurface_FromSurface (cairo_surface_t *surface, PyObject *base) {
 static cairo_status_t
 _write_func (void *closure, const unsigned char *data, unsigned int length) {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  //  PyObject *res = PyObject_CallMethod ((PyObject *)closure, "write", "(s#)",
-  //				       data, (Py_ssize_t)length);
   PyObject *res = PyObject_CallMethod ((PyObject *)closure, "write", "(y#)",
 				       data, (Py_ssize_t)length);
   if (res == NULL) {
@@ -147,8 +147,8 @@ surface_dealloc (PycairoSurface *o) {
     o->surface = NULL;
   }
   Py_CLEAR(o->base);
+  PyBuffer_Release(&o->buffer);
 
-  //o->ob_type->tp_free((PyObject *)o);
   Py_TYPE(o)->tp_free(o);
 }
 
@@ -416,23 +416,12 @@ image_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
 
 static PyObject *
 image_surface_create_for_data (PyTypeObject *type, PyObject *args) {
-  cairo_surface_t *surface;
   cairo_format_t format;
-  unsigned char *buffer;
-  int width, height, stride = -1, res;
-  Py_ssize_t buffer_len;
-  PyObject *obj;
+  int width, height, stride = -1;
+  Py_buffer buffer;
 
-  // buffer function disabled
-  PyErr_SetString(PyExc_NotImplementedError, "Surface.create_for_data: Not Implemented yet.");
-  return NULL;
-
-  if (!PyArg_ParseTuple(args, "Oiii|i:Surface.create_for_data",
-			&obj, &format, &width, &height, &stride))
-    return NULL;
-
-  res = PyObject_AsWriteBuffer (obj, (void **)&buffer, &buffer_len);
-  if (res == -1)
+  if (!PyArg_ParseTuple(args, "w*iii|i:Surface.create_for_data",
+			&buffer, &format, &width, &height, &stride))
     return NULL;
 
   if (width <= 0) {
@@ -452,15 +441,20 @@ image_surface_create_for_data (PyTypeObject *type, PyObject *args) {
       return NULL;
     }
   }
-  if (height * stride > buffer_len) {
+  if (height * stride > buffer.len) {
     PyErr_SetString(PyExc_TypeError, "buffer is not long enough");
     return NULL;
   }
+  cairo_surface_t *surface;
+  PyObject *o;
   Py_BEGIN_ALLOW_THREADS;
-  surface = cairo_image_surface_create_for_data (buffer, format, width,
+  surface = cairo_image_surface_create_for_data (buffer.buf, format, width,
 						 height, stride);
   Py_END_ALLOW_THREADS;
-  return PycairoSurface_FromSurface(surface, obj);
+
+  o = PycairoSurface_FromSurface(surface, NULL);
+  ((PycairoSurface *)o)->buffer = buffer;
+  return o;
 }
 
 
@@ -570,7 +564,11 @@ image_surface_get_width (PycairoImageSurface *o) {
 }
 
 
-/* Buffer interface functions, used by ImageSurface.get_data() */
+/* Buffer interface functions
+used by ImageSurface.get_data()
+PEP 3118 -- Revising the buffer protocol
+http://www.python.org/dev/peps/pep-3118/
+*/
 static int
 image_surface_buffer_getbufferproc (PycairoImageSurface *o, Py_buffer *view,
 				                    int flags) {
@@ -578,74 +576,19 @@ image_surface_buffer_getbufferproc (PycairoImageSurface *o, Py_buffer *view,
   int height, stride;
   void *data;
 
+  /* buffer does not give ndim, shape or stride information
+   */
+
   height = cairo_image_surface_get_height (surface);
   stride = cairo_image_surface_get_stride (surface);
   data   = cairo_image_surface_get_data   (surface);
 
   if(!PyBuffer_FillInfo(view, (PyObject *)o, data,
-        height * stride, 0, PyBUF_CONTIG))
+			height * stride, 0, PyBUF_CONTIG))
     return 0;
   return -1;
 }
 
-/* Buffer interface functions, used by ImageSurface.get_data() */
-/*
-static int
-image_surface_buffer_getreadbuf (PycairoImageSurface *o, int segment,
-				 const void **ptr) {
-  cairo_surface_t *surface = o->surface;
-  int height, stride;
-
-  if (segment != 0) {
-    PyErr_SetString(PyExc_SystemError,
-		    "accessing non-existent ImageSurface segment");
-    return -1;
-  }
-  height = cairo_image_surface_get_height (surface);
-  stride = cairo_image_surface_get_stride (surface);
-  *ptr = (void *) cairo_image_surface_get_data (surface);
-  return height * stride;
-}
-
-static int
-image_surface_buffer_getwritebuf (PycairoImageSurface *o, int segment,
-				  const void **ptr) {
-  cairo_surface_t *surface = o->surface;
-  int height, stride;
-
-  if (segment != 0) {
-    PyErr_SetString(PyExc_SystemError,
-		    "accessing non-existent ImageSurface segment");
-    return -1;
-  }
-  height = cairo_image_surface_get_height (surface);
-  stride = cairo_image_surface_get_stride (surface);
-  *ptr = (void *) cairo_image_surface_get_data (surface);
-  return height * stride;
-}
-
-static int
-image_surface_buffer_getsegcount (PycairoImageSurface *o, int *lenp) {
-  if (lenp) {
-  // report the sum of the sizes (in bytes) of all segments
-    cairo_surface_t *surface = o->surface;
-    int height = cairo_image_surface_get_height (surface);
-    int stride = cairo_image_surface_get_stride (surface);
-    *lenp = height * stride;
-  }
-  return 1;  // surface data is all in one segment
-}
-*/
-
-/* See Python C API Manual 10.7 */
-/*
-static PyBufferProcs image_surface_as_buffer = {
-  (readbufferproc) image_surface_buffer_getreadbuf,
-  (writebufferproc)image_surface_buffer_getwritebuf,
-  (segcountproc)   image_surface_buffer_getsegcount,
-  (charbufferproc) NULL,
-};
-*/
 static PyBufferProcs image_surface_as_buffer = {
   (getbufferproc) image_surface_buffer_getbufferproc,
   (releasebufferproc) NULL,

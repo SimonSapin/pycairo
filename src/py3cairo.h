@@ -75,6 +75,7 @@ typedef struct {
   PyObject_HEAD
   cairo_surface_t *surface;
   PyObject *base; /* base object used to create surface, or NULL */
+  Py_buffer buffer;
 } PycairoSurface;
 
 #define PycairoImageSurface         PycairoSurface
