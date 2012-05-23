@@ -453,7 +453,9 @@ image_surface_create_for_data (PyTypeObject *type, PyObject *args) {
   Py_END_ALLOW_THREADS;
 
   o = PycairoSurface_FromSurface(surface, NULL);
-  ((PycairoSurface *)o)->buffer = buffer;
+  if (o != NULL) {
+    ((PycairoSurface *)o)->buffer = buffer;
+  }
   return o;
 }
 
@@ -571,7 +573,7 @@ http://www.python.org/dev/peps/pep-3118/
 */
 static int
 image_surface_buffer_getbufferproc (PycairoImageSurface *o, Py_buffer *view,
-				                    int flags) {
+				    int flags) {
   cairo_surface_t *surface = o->surface;
   int height, stride;
   void *data;
