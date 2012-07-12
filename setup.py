@@ -33,7 +33,12 @@ def pkg_config_version_check(pkg, version):
     raise SystemExit(pipe.stderr.read().decode())
 
 def pkg_config_parse(opt, pkg):
+  check = "pkg-config %s %s" % (opt, pkg)
   pipe = call("pkg-config %s %s" % (opt, pkg))
+  if pipe.returncode != 0:
+    print(check, ' Failed')
+    raise SystemExit(pipe.stderr.read().decode())
+
   output = pipe.stdout.read()
   output = output.decode() # get the str
   opt = opt[-2:]

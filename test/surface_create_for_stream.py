@@ -3,11 +3,10 @@
 Test PDF/PS/SVG constructors (using streams)
 """
 
-import cStringIO
 import gc
 import math
 import sys
-import StringIO
+#import io.Bytes
 
 import cairo
 
@@ -28,21 +27,26 @@ class C(object):
     self.closed = True
 
 
+WIDTH, HEIGHT  = 256, 256
+
 # a selection of possible args to surface.write_to_png()
-#fo = '/tmp/f.ps'
-fo = file('/tmp/f.svg', 'wb')
-#fo = StringIO.StringIO()
-#fo = cStringIO.StringIO()
-#fo = sys.stdout
+fo = sys.stdout  # only compatible with str/text objects - SVG
 #fo = C()
+
+#fo = '/tmp/f.pdf'
+#fo = open('/tmp/f.pdf', 'wb')
+#surface = cairo.PDFSurface(fo, WIDTH, HEIGHT)
+
+#fo = '/tmp/f.ps'
+#fo = open('/tmp/f.ps', 'wb')
+#surface = cairo.PSSurface(fo, WIDTH, HEIGHT)
+
+#fo = '/tmp/f.svg'
+#fo = open('/tmp/f.svg', 'wt')
+surface = cairo.SVGSurface(fo, WIDTH, HEIGHT)
 
 #fo.close()  # this should cause: ValueError: I/O operation on closed file
 
-WIDTH, HEIGHT  = 256, 256
-
-#surface = cairo.PDFSurface(fo, WIDTH, HEIGHT)
-#surface = cairo.PSSurface(fo, WIDTH, HEIGHT)
-surface = cairo.SVGSurface(fo, WIDTH, HEIGHT)
 
 #sys.stdout.write ('1\n'); sys.stdout.flush()
 ctx = cairo.Context(surface)
@@ -74,7 +78,7 @@ ctx.fill()
 ctx.show_page()
 surface.finish()
 
-# for testing StringIO: get data and write to file
+# for testing io.Bytes: get data and write to file
 #string = fo.getvalue()
 #f2 = file('/tmp/f.ps', 'wb')
 #f2.write(string)

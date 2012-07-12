@@ -121,12 +121,32 @@ PycairoSurface_FromSurface (cairo_surface_t *surface, PyObject *base) {
 
 /* for use with
  * cairo_surface_write_to_png_stream()
- * cairo_pdf/ps/svg_surface_create_for_stream()
+ * cairo_pdf/ps_surface_create_for_stream()
  */
 static cairo_status_t
-_write_func (void *closure, const unsigned char *data, unsigned int length) {
+_write_bytes_func (void *closure, const unsigned char *data, unsigned int length) {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *res = PyObject_CallMethod ((PyObject *)closure, "write", "(y#)",
+				       data, (Py_ssize_t)length);
+  if (res == NULL) {
+    /* an exception has occurred, it will be picked up later by
+     * Pycairo_Check_Status()
+     */
+    PyGILState_Release(gstate);
+    return CAIRO_STATUS_WRITE_ERROR;
+  }
+  Py_DECREF(res);
+  PyGILState_Release(gstate);
+  return CAIRO_STATUS_SUCCESS;
+}
+
+/* for use with
+ * cairo_svg_surface_create_for_stream()
+ */
+static cairo_status_t
+_write_str_func (void *closure, const unsigned char *data, unsigned int length) {
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyObject *res = PyObject_CallMethod ((PyObject *)closure, "write", "(s#)",
 				       data, (Py_ssize_t)length);
   if (res == NULL) {
     /* an exception has occurred, it will be picked up later by
@@ -307,12 +327,12 @@ surface_write_to_png (PycairoSurface *o, PyObject *args) {
       Py_XDECREF(writer);
       PyErr_SetString(PyExc_TypeError,
 "Surface.write_to_png takes one argument which must be a filename (str), file "
-"object, or a file-like object which has a \"write\" method (like StringIO)");
+"object, or a file-like bytes-mode object which has a \"write\" method");
       return NULL;
     }
     Py_DECREF(writer);
     Py_BEGIN_ALLOW_THREADS;
-    status = cairo_surface_write_to_png_stream (o->surface, _write_func,
+    status = cairo_surface_write_to_png_stream (o->surface, _write_bytes_func,
 						file);
     Py_END_ALLOW_THREADS;
   }
@@ -462,7 +482,7 @@ image_surface_create_for_data (PyTypeObject *type, PyObject *args) {
 
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
 static cairo_status_t
-_read_func (void *closure, unsigned char *data, unsigned int length) {
+_read_bytes_func (void *closure, unsigned char *data, unsigned int length) {
   char *buffer;
   Py_ssize_t str_length;
   cairo_status_t status = CAIRO_STATUS_READ_ERROR;
@@ -518,13 +538,13 @@ image_surface_create_from_png (PyTypeObject *type, PyObject *args) {
     Py_XDECREF(reader);
     PyErr_SetString(PyExc_TypeError,
 "ImageSurface.create_from_png argument must be a filename (str), file object, "
-"or an object that has a \"read\" method (like StringIO)");
+"or a file-like bytes-mode object which has a \"read\" method");
     return NULL;
   }
   Py_DECREF(reader);
 
   Py_BEGIN_ALLOW_THREADS;
-  is = cairo_image_surface_create_from_png_stream (_read_func, file);
+  is = cairo_image_surface_create_from_png_stream (_read_bytes_func, file);
   Py_END_ALLOW_THREADS;
   return PycairoSurface_FromSurface (is, NULL);
 }
@@ -708,14 +728,14 @@ pdf_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
 "  None, or\n"
 "  a filename (str), or\n"
 "  a file object, or\n"
-"  an object that has a \"write\" method (like StringIO)."
+"  a file-like bytes-mode object which has a \"write\" method."
 		    );
     return NULL;
   }
   Py_DECREF(writer);
 
   Py_BEGIN_ALLOW_THREADS;
-  sfc = cairo_pdf_surface_create_for_stream (_write_func, obj,
+  sfc = cairo_pdf_surface_create_for_stream (_write_bytes_func, obj,
 					     width_in_points, height_in_points);
   Py_END_ALLOW_THREADS;
   return PycairoSurface_FromSurface (sfc, obj);
@@ -829,14 +849,14 @@ ps_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
 "  None, or\n"
 "  a filename (str), or\n"
 "  a file object, or\n"
-"  an object that has a \"write\" method (like StringIO)."
+"  a file-like bytes-mode object which has a \"write\" method."
 		    );
     return NULL;
   }
   Py_DECREF(writer);
 
   Py_BEGIN_ALLOW_THREADS;
-  sfc = cairo_ps_surface_create_for_stream (_write_func, obj,
+  sfc = cairo_ps_surface_create_for_stream (_write_bytes_func, obj,
 					    width_in_points, height_in_points);
   Py_END_ALLOW_THREADS;
   return PycairoSurface_FromSurface (sfc, obj);
@@ -1121,14 +1141,14 @@ svg_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
 "  None, or\n"
 "  a filename (str), or\n"
 "  a file object, or\n"
-"  an object that has a \"write\" method (like StringIO)."
+"  a file-like text-mode object which has a \"write\" method."
 		    );
     return NULL;
   }
   Py_DECREF(writer);
 
   Py_BEGIN_ALLOW_THREADS;
-  sfc = cairo_svg_surface_create_for_stream (_write_func, obj,
+  sfc = cairo_svg_surface_create_for_stream (_write_str_func, obj,
 					     width_in_points, height_in_points);
   Py_END_ALLOW_THREADS;
   return PycairoSurface_FromSurface (sfc, obj);
