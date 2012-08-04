@@ -24,6 +24,11 @@
 #include "config.h"
 #include "private.h"
 
+/* to read CAIRO_PDF_VERSION_* constants */
+#ifdef CAIRO_HAS_PDF_SURFACE
+#  include <cairo-pdf.h>
+#endif
+
 /* to read CAIRO_PS_LEVEL_* constants */
 #ifdef CAIRO_HAS_PS_SURFACE
 #  include <cairo-ps.h>
@@ -534,6 +539,11 @@ PyInit__cairo(void)
   CONSTANT(PATH_LINE_TO);
   CONSTANT(PATH_CURVE_TO);
   CONSTANT(PATH_CLOSE_PATH);
+
+#ifdef CAIRO_HAS_PDF_SURFACE
+  CONSTANT(PDF_VERSION_1_4);
+  CONSTANT(PDF_VERSION_1_5);
+#endif
 
 #ifdef CAIRO_HAS_PS_SURFACE
   CONSTANT(PS_LEVEL_2);

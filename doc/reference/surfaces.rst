@@ -80,6 +80,36 @@ class Surface()
       Initially the surface contents are all 0 (transparent if contents have
       transparency, black otherwise.)
 
+   .. method:: create_for_rectangle(x, y, width, height)
+
+      :param x: the x-origin of the sub-surface from the top-left of the
+        target surface (in device-space units)
+      :type x: float
+      :param y: the y-origin of the sub-surface from the top-left of the
+        target surface (in device-space units)
+      :type y: float
+      :param width: width of the sub-surface, (in device-space units)
+      :type width: float
+      :param height: height of the sub-surface (in device-space units)
+      :type width: float
+
+      :returns: a newly allocated *Surface*.
+
+      Create a new surface that is a rectangle within the target surface. All
+      operations drawn to this surface are then clipped and translated onto
+      the target surface. Nothing drawn via this sub-surface outside of its
+      bounds is drawn onto the target surface, making this a useful method for
+      passing constrained child surfaces to library routines that draw
+      directly onto the parent surface, i.e. with no further backend
+      allocations, double buffering or copies.
+
+      Note: The semantics of subsurfaces have not been finalized yet unless
+      the rectangle is in full device units, is contained within the extents
+      of the target surface, and the target or subsurface's device transforms
+      are not changed.
+
+      .. versionadded:: 1.10.2
+
    .. method:: finish()
 
       This method finishes the *Surface* and drops all references to external
@@ -353,6 +383,33 @@ multi-page vector surface backend.
    :raises: *MemoryError* in case of no memory
 
    .. versionadded:: 1.2
+
+   .. staticmethod:: pdf_version_to_string(level)
+
+      :param level: a :ref:`PDF_VERSION <constants_PDF_VERSION>`
+      :returns: the string associated to given version.
+      :rtype: str
+      :raises: :exc:`cairo.Error` if *version* isn't valid.
+
+      Get the string representation of the given *version*. See
+      :meth:`.pdf_get_versions` for a way to get the list of valid level
+      ids.
+
+      .. versionadded:: 1.10.2
+
+   .. method:: restrict_to_version(version)
+
+      :param version: a :ref:`PDF_VERSION <constants_PDF_VERSION>`
+
+      Restricts the generated PDF file to *version*. See
+      :meth:`.pdf_get_versions` for a list of available version values that can
+      be used here.
+
+      This function should only be called before any drawing operations have
+      been performed on the given surface. The simplest way to do this is to
+      call this function immediately after creating the surface.
+
+      .. versionadded:: 1.10.2
 
    .. method:: set_size()
 

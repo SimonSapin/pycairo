@@ -530,6 +530,20 @@ pycairo_identity_matrix (PycairoContext *o) {
 }
 
 static PyObject *
+pycairo_in_clip (PycairoContext *o, PyObject *args) {
+  double x, y;
+  PyObject *result;
+
+  if (!PyArg_ParseTuple (args, "dd:Context.in_clip", &x, &y))
+    return NULL;
+
+  result = cairo_in_clip (o->ctx, x, y) ? Py_True : Py_False;
+  RETURN_NULL_IF_CAIRO_CONTEXT_ERROR(o->ctx);
+  Py_INCREF(result);
+  return result;
+}
+
+static PyObject *
 pycairo_in_fill (PycairoContext *o, PyObject *args) {
   double x, y;
   PyObject *result;
@@ -1266,6 +1280,7 @@ static PyMethodDef pycairo_methods[] = {
   {"glyph_path",      (PyCFunction)pycairo_glyph_path,       METH_VARARGS},
   {"has_current_point",(PyCFunction)pycairo_has_current_point, METH_NOARGS},
   {"identity_matrix", (PyCFunction)pycairo_identity_matrix,  METH_NOARGS},
+  {"in_clip",         (PyCFunction)pycairo_in_clip,          METH_VARARGS},
   {"in_fill",         (PyCFunction)pycairo_in_fill,          METH_VARARGS},
   {"in_stroke",       (PyCFunction)pycairo_in_stroke,        METH_VARARGS},
   {"line_to",         (PyCFunction)pycairo_line_to,          METH_VARARGS},

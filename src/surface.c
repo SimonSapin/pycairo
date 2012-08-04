@@ -202,6 +202,20 @@ surface_create_similar (PycairoSurface *o, PyObject *args) {
 }
 
 static PyObject *
+surface_create_for_rectangle (PycairoSurface *o, PyObject *args) {
+  double x, y, width, height;
+
+  if (!PyArg_ParseTuple (args, "dddd:Surface.create_for_rectangle",
+			 &x, &y, &width, &height))
+
+    return NULL;
+  return PycairoSurface_FromSurface (
+	     cairo_surface_create_for_rectangle (o->surface,
+						 x, y, width, height),
+	     NULL);
+}
+
+static PyObject *
 surface_finish (PycairoSurface *o) {
   cairo_surface_finish (o->surface);
   Py_CLEAR(o->base);
@@ -352,6 +366,8 @@ static PyMethodDef surface_methods[] = {
    */
   {"copy_page",      (PyCFunction)surface_copy_page,          METH_NOARGS},
   {"create_similar", (PyCFunction)surface_create_similar,     METH_VARARGS},
+  {"create_for_rectangle", (PyCFunction)surface_create_for_rectangle,
+                                                              METH_VARARGS},
   {"finish",         (PyCFunction)surface_finish,             METH_NOARGS},
   {"flush",          (PyCFunction)surface_flush,              METH_NOARGS},
   {"get_content",    (PyCFunction)surface_get_content,        METH_NOARGS},
@@ -742,6 +758,17 @@ pdf_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
 }
 
 static PyObject *
+pdf_surface_restrict_to_version (PycairoPDFSurface *o, PyObject *args) {
+  int version;
+
+  if (!PyArg_ParseTuple(args, "i:PDFSurface.restrict_to_version", &version))
+    return NULL;
+  cairo_pdf_surface_restrict_to_version (o->surface, version);
+  RETURN_NULL_IF_CAIRO_SURFACE_ERROR(o->surface);
+  Py_RETURN_NONE;
+}
+
+static PyObject *
 pdf_surface_set_size (PycairoPDFSurface *o, PyObject *args) {
   double width_in_points, height_in_points;
 
@@ -753,8 +780,28 @@ pdf_surface_set_size (PycairoPDFSurface *o, PyObject *args) {
   Py_RETURN_NONE;
 }
 
+/* METH_STATIC */
+static PyObject *
+pdf_surface_pdf_version_to_string (PyObject *self, PyObject *args) {
+  int version;
+  if (!PyArg_ParseTuple(args, "i:pdf_version_to_string", &version))
+    return NULL;
+  const char *s = cairo_pdf_version_to_string (version);
+  if (s == NULL){
+    PyErr_SetString(CairoError, "pdf_version_to_string: "
+		    "invalid level argument");
+    return NULL;
+  }
+  return PyUnicode_DecodeASCII(s, strlen(s), NULL);
+}
+
 static PyMethodDef pdf_surface_methods[] = {
-  {"set_size", (PyCFunction)pdf_surface_set_size,    METH_VARARGS },
+  {"restrict_to_version", (PyCFunction)pdf_surface_restrict_to_version,
+                                                              METH_VARARGS },
+  {"set_size", (PyCFunction)pdf_surface_set_size,             METH_VARARGS },
+  /* pdf_get_levels - not implemented yet */
+  {"pdf_version_to_string", (PyCFunction)pdf_surface_pdf_version_to_string,
+                                                 METH_VARARGS | METH_STATIC},
   {NULL, NULL, 0, NULL},
 };
 
@@ -902,11 +949,9 @@ ps_surface_ps_level_to_string (PyObject *self, PyObject *args) {
     return NULL;
   const char *s = cairo_ps_level_to_string (level);
   if (s == NULL){
-    PyErr_SetString(CairoError, "ps_level_to_string: "
-		    "invalid level argument");
+    PyErr_SetString(CairoError, "ps_level_to_string: invalid level argument");
     return NULL;
   }
-  //return PyUnicode_FromString(s);
   return PyUnicode_DecodeASCII(s, strlen(s), NULL);
 }
 
@@ -944,16 +989,16 @@ ps_surface_set_size (PycairoPSSurface *o, PyObject *args) {
 }
 
 static PyMethodDef ps_surface_methods[] = {
-  {"dsc_begin_page_setup",
-   (PyCFunction)ps_surface_dsc_begin_page_setup, METH_NOARGS },
+  {"dsc_begin_page_setup", (PyCFunction)ps_surface_dsc_begin_page_setup,
+                                                               METH_NOARGS },
   {"dsc_begin_setup", (PyCFunction)ps_surface_dsc_begin_setup, METH_NOARGS },
   {"dsc_comment", (PyCFunction)ps_surface_dsc_comment,        METH_VARARGS },
   {"get_eps", (PyCFunction)ps_surface_get_eps,                 METH_NOARGS },
-  /* ps_get_levels - not implemented yet*/
+  /* ps_get_levels - not implemented yet */
   {"ps_level_to_string", (PyCFunction)ps_surface_ps_level_to_string,
-   METH_VARARGS | METH_STATIC},
+                                                 METH_VARARGS | METH_STATIC},
   {"restrict_to_level", (PyCFunction)ps_surface_restrict_to_level,
-   METH_VARARGS },
+                                                              METH_VARARGS },
   {"set_eps", (PyCFunction)ps_surface_set_eps,                METH_VARARGS },
   {"set_size", (PyCFunction)ps_surface_set_size,              METH_VARARGS },
   {NULL, NULL, 0, NULL},

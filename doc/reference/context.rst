@@ -557,6 +557,20 @@ safely be changed, without loosing the current state. Use
       axes will be aligned and one user-space unit will transform to one
       device-space unit.
 
+   .. method:: in_clip(x, y)
+
+      :param x: X coordinate of the point to test
+      :type x: float
+      :param y: Y coordinate of the point to test
+      :type y: float
+      :returns: True iff the given point is inside the area that would be
+        visible through the current clip, i.e. the area that would be filled
+        by a :meth:`Context.paint` operation.
+
+      See :meth:`Context.clip`, :meth:`Context.clip_preserve`.
+
+      .. versionadded:: 1.10.2
+
    .. method:: in_fill(x, y)
 
       :param x: X coordinate of the point to test

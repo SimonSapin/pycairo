@@ -483,6 +483,23 @@ represented as a :class:`Path`.
    A close-path operation
 
 
+.. _constants_PDF_VERSION:
+
+cairo.PDF_VERSION
+-----------------
+These constants are used to describe the version number of the PDF
+specification that a generated PDF file will conform to. Note: the constants
+are only defined when cairo has been compiled with PDF support enabled.
+
+.. data:: CAIRO_PDF_VERSION_1_4
+
+   The version 1.4 of the PDF specification.
+
+.. data:: CAIRO_PDF_VERSION_1_5
+
+   The version 1.5 of the PDF specification.
+
+
 .. _constants_PS_LEVEL:
 
 cairo.PS_LEVEL
