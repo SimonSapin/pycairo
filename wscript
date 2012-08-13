@@ -33,10 +33,12 @@ def configure(ctx):
                 atleast_version=cairo_version_required,
                 args='--cflags --libs')
 
-  ctx.check_cfg(package='xpyb',
-                atleast_version=xpyb_version_required,
-                args='--cflags --libs',
-                mandatory=False)
+# xpyb for Python 3 is not available yet.
+# the Python 3 version should probably have a different name than 'xpyb'
+#  ctx.check_cfg(package='xpyb',
+#                atleast_version=xpyb_version_required,
+#                args='--cflags --libs',
+#                mandatory=False)
 
   # add gcc options
   if env['CC_NAME'] == 'gcc':
