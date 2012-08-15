@@ -456,6 +456,79 @@ mathematical definitions, see http://cairographics.org/operators.
 
    like over, but assuming source and dest are disjoint geometries
 
+.. data:: OPERATOR_MULTIPLY
+
+   source and destination layers are multiplied. This causes the result to be
+   at least as dark as the darker inputs. (Since 1.10.2)
+
+.. data:: OPERATOR_SCREEN
+
+   source and destination are complemented and multiplied. This causes the
+   result to be at least as light as the lighter inputs. (Since 1.10.2)
+
+.. data:: OPERATOR_OVERLAY
+
+   multiplies or screens, depending on the lightness of the destination
+   color. (Since 1.10.2)
+
+.. data:: OPERATOR_DARKEN
+
+   replaces the destination with the source if it is darker, otherwise keeps
+   the source. (Since 1.10.2)
+
+.. data:: OPERATOR_LIGHTEN
+
+   replaces the destination with the source if it is lighter, otherwise keeps
+   the source. (Since 1.10.2)
+
+.. data:: OPERATOR_COLOR_DODGE
+
+   brightens the destination color to reflect the source color. (Since 1.10.2)
+
+.. data:: OPERATOR_COLOR_BURN
+
+   darkens the destination color to reflect the source color. (Since 1.10.2)
+
+.. data:: OPERATOR_HARD_LIGHT
+
+   Multiplies or screens, dependent on source color. (Since 1.10.2)
+
+.. data:: OPERATOR_SOFT_LIGHT
+
+   Darkens or lightens, dependent on source color. (Since 1.10.2)
+
+.. data:: OPERATOR_DIFFERENCE
+
+   Takes the difference of the source and destination color. (Since 1.10.2)
+
+.. data:: OPERATOR_EXCLUSION
+
+   Produces an effect similar to difference, but with lower contrast. (Since
+   1.10.2)
+
+.. data:: OPERATOR_HSL_HUE
+
+   Creates a color with the hue of the source and the saturation and
+   luminosity of the target. (Since 1.10.2)
+
+.. data:: OPERATOR_HSL_SATURATION
+
+   Creates a color with the saturation of the source and the hue and
+   luminosity of the target. Painting with this mode onto a gray area produces
+   no change. (Since 1.10.2)
+
+.. data:: OPERATOR_HSL_COLOR
+
+   Creates a color with the hue and saturation of the source and the
+   luminosity of the target. This preserves the gray levels of the target and
+   is useful for coloring monochrome images or tinting color images. (Since
+   1.10.2)
+
+.. data:: OPERATOR_HSL_LUMINOSITY
+
+   Creates a color with the luminosity of the source and the hue and
+   saturation of the target. This produces an inverse effect to
+   CAIRO_OPERATOR_HSL_COLOR. (Since 1.10.2)
 
 .. _constants_PATH:
 
