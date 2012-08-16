@@ -384,6 +384,10 @@ multi-page vector surface backend.
 
    .. versionadded:: 1.2
 
+   .. staticmethod:: pdf_get_versions()
+
+      Not implemented in pycairo (yet)
+
    .. staticmethod:: pdf_version_to_string(level)
 
       :param level: a :ref:`PDF_VERSION <constants_PDF_VERSION>`
@@ -573,6 +577,10 @@ is a multi-page vector surface backend.
 
       .. versionadded:: 1.6
 
+   .. staticmethod:: ps_get_levels()
+
+      Not implemented in pycairo (yet)
+
    .. staticmethod:: ps_level_to_string(level)
 
       :param level: a :ref:`PS_LEVEL <constants_PS_LEVEL>`
@@ -715,17 +723,36 @@ multi-page vector surface backend
    :raises: *MemoryError* in case of no memory
 
 
-   .. method:: get_versions
+   .. method:: restrict_to_version(version)
+
+      :param version: a :ref:`SVG_VERSION <constants_SVG_VERSION>`
+
+      Restricts the generated SVG file to *version*. See
+      :meth:`.svg_get_versions` for a list of available version values that can
+      be used here.
+
+      This function should only be called before any drawing operations have
+      been performed on the given surface. The simplest way to do this is to
+      call this function immediately after creating the surface.
+
+      .. versionadded:: 1.10.2
+
+   .. staticmethod:: svg_get_versions()
 
       Not implemented in pycairo (yet)
 
-   .. method:: restrict_to_version
+   .. staticmethod:: svg_version_to_string(level)
 
-      Not implemented in pycairo (yet)
+      :param level: a :ref:`SVG_VERSION <constants_SVG_VERSION>`
+      :returns: the string associated to given version.
+      :rtype: str
+      :raises: :exc:`cairo.Error` if *version* isn't valid.
 
-   .. method:: version_to_string
+      Get the string representation of the given *version*. See
+      :meth:`.svg_get_versions` for a way to get the list of valid level
+      ids.
 
-      Not implemented in pycairo (yet)
+      .. versionadded:: 1.10.2
 
 
 class Win32Surface(:class:`Surface`)

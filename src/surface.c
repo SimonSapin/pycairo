@@ -799,7 +799,7 @@ static PyMethodDef pdf_surface_methods[] = {
   {"restrict_to_version", (PyCFunction)pdf_surface_restrict_to_version,
                                                               METH_VARARGS },
   {"set_size", (PyCFunction)pdf_surface_set_size,             METH_VARARGS },
-  /* pdf_get_levels - not implemented yet */
+  /* pdf_get_versions - not implemented yet */
   {"pdf_version_to_string", (PyCFunction)pdf_surface_pdf_version_to_string,
                                                  METH_VARARGS | METH_STATIC},
   {NULL, NULL, 0, NULL},
@@ -1199,13 +1199,39 @@ svg_surface_new (PyTypeObject *type, PyObject *args, PyObject *kwds) {
   return PycairoSurface_FromSurface (sfc, obj);
 }
 
+static PyObject *
+svg_surface_restrict_to_version (PycairoSVGSurface *o, PyObject *args) {
+  int version;
+
+  if (!PyArg_ParseTuple(args, "i:SVGSurface.restrict_to_version", &version))
+    return NULL;
+  cairo_svg_surface_restrict_to_version (o->surface, version);
+  RETURN_NULL_IF_CAIRO_SURFACE_ERROR(o->surface);
+  Py_RETURN_NONE;
+}
+
+/* METH_STATIC */
+static PyObject *
+svg_surface_svg_version_to_string (PyObject *self, PyObject *args) {
+  int version;
+  if (!PyArg_ParseTuple(args, "i:svg_version_to_string", &version))
+    return NULL;
+  const char *s = cairo_svg_version_to_string (version);
+  if (s == NULL){
+    PyErr_SetString(CairoError, "svg_version_to_string: "
+		    "invalid level argument");
+    return NULL;
+  }
+  return PyUnicode_DecodeASCII(s, strlen(s), NULL);
+}
+
 static PyMethodDef svg_surface_methods[] = {
-  /* TODO
-   * cairo_svg_surface_restrict_to_version
-   * cairo_svg_get_versions
-   * cairo_svg_version_to_string
-   */
-    {NULL, NULL, 0, NULL},
+  {"restrict_to_version", (PyCFunction)svg_surface_restrict_to_version,
+                                                              METH_VARARGS },
+  /* svg_get_versions - not implemented yet */
+  {"svg_version_to_string", (PyCFunction)svg_surface_svg_version_to_string,
+                                                 METH_VARARGS | METH_STATIC},
+  {NULL, NULL, 0, NULL},
 };
 
 PyTypeObject PycairoSVGSurface_Type = {

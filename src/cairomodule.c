@@ -34,6 +34,11 @@
 #  include <cairo-ps.h>
 #endif
 
+/* to read CAIRO_SVG_VERSION_* constants */
+#ifdef CAIRO_HAS_SVG_SURFACE
+#  include <cairo-svg.h>
+#endif
+
 /* for XCB api */
 #if defined(CAIRO_HAS_XCB_SURFACE) && defined(HAVE_XPYB)
 xpyb_CAPI_t *xpyb_CAPI;
@@ -564,6 +569,11 @@ PyInit__cairo(void)
 #ifdef CAIRO_HAS_PS_SURFACE
   CONSTANT(PS_LEVEL_2);
   CONSTANT(PS_LEVEL_3);
+#endif
+
+#ifdef CAIRO_HAS_SVG_SURFACE
+  CONSTANT(SVG_VERSION_1_1);
+  CONSTANT(SVG_VERSION_1_2);
 #endif
 
   CONSTANT(SUBPIXEL_ORDER_DEFAULT);
