@@ -285,8 +285,6 @@ static PyMethodDef matrix_methods[] = {
 
 PyTypeObject PycairoMatrix_Type = {
   PyVarObject_HEAD_INIT(&PyType_Type, 0)
-  //PyObject_HEAD_INIT(NULL)
-  //0,                                  /* ob_size */
   "cairo.Matrix",                     /* tp_name */
   sizeof(PycairoMatrix),              /* tp_basicsize */
   0,                                  /* tp_itemsize */

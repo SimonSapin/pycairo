@@ -22,7 +22,7 @@
 #define _PYCAIRO_PRIVATE_H_
 
 #ifdef _PYCAIRO_H_
-#  error "don't include pycairo.h and pycairo-private.h together"
+#  error "don't include py3cairo.h and private.h together"
 #endif
 
 #define _INSIDE_PYCAIRO_
@@ -61,6 +61,13 @@ extern PyTypeObject PycairoLinearGradient_Type;
 extern PyTypeObject PycairoRadialGradient_Type;
 PyObject *PycairoPattern_FromPattern (cairo_pattern_t *pattern,
 				      PyObject *base);
+
+extern PyTypeObject PycairoRectangleInt_Type;
+PyObject *PycairoRectangleInt_FromRectangleInt (
+				       cairo_rectangle_int_t *rectangle_int);
+
+extern PyTypeObject PycairoRegion_Type;
+PyObject *PycairoRegion_FromRegion (cairo_region_t *region);
 
 extern PyTypeObject PycairoScaledFont_Type;
 PyObject *PycairoScaledFont_FromScaledFont (cairo_scaled_font_t *scaled_font);
@@ -155,6 +162,15 @@ int Pycairo_Check_Status (cairo_status_t status);
 #define RETURN_NULL_IF_CAIRO_FONT_OPTIONS_ERROR(fo)	        \
   do {								\
     cairo_status_t status = cairo_font_options_status (fo);	\
+    if (status != CAIRO_STATUS_SUCCESS) {			\
+      Pycairo_Check_Status (status);				\
+      return NULL;						\
+    }								\
+  } while (0)
+
+#define RETURN_NULL_IF_CAIRO_REGION_ERROR(region)               \
+  do {								\
+    cairo_status_t status = cairo_region_status (region);	\
     if (status != CAIRO_STATUS_SUCCESS) {			\
       Pycairo_Check_Status (status);				\
       return NULL;						\

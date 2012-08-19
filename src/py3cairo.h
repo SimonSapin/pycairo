@@ -68,6 +68,16 @@ typedef struct {
 
 typedef struct {
   PyObject_HEAD
+  cairo_rectangle_int_t rectangle_int;
+} PycairoRectangleInt;
+
+typedef struct {
+  PyObject_HEAD
+  cairo_region_t *region;
+} PycairoRegion;
+
+typedef struct {
+  PyObject_HEAD
   cairo_scaled_font_t *scaled_font;
 } PycairoScaledFont;
 
@@ -133,6 +143,14 @@ typedef struct {
 
   /* misc functions */
   int (*Check_Status)(cairo_status_t status);
+
+  PyTypeObject *RectangleInt_Type;
+  PyObject *(*RectangleInt_FromRectangleInt)(
+      const cairo_rectangle_int_t *rectangle_int);
+
+  PyTypeObject *Region_Type;
+  PyObject *(*Region_FromRegion)(const cairo_region_t *region);
+
 } Pycairo_CAPI_t;
 
 
@@ -159,6 +177,13 @@ typedef struct {
 #define PycairoLinearGradient_Type  *(Pycairo_CAPI->LinearGradient_Type)
 #define PycairoRadialGradient_Type  *(Pycairo_CAPI->RadialGradient_Type)
 #define PycairoPattern_FromPattern   (Pycairo_CAPI->Pattern_FromPattern)
+
+#define PycairoRectangleInt_Type    *(Pycairo_CAPI->RectangleInt_Type)
+#define PycairoRectangleInt_FromRectangleInt  \
+                                  (Pycairo_CAPI->RectangleInt_FromRectangleInt)
+
+#define PycairoRegion_Type          *(Pycairo_CAPI->Region_Type)
+#define PycairoRegion_FromRegion     (Pycairo_CAPI->Region_FromRegion)
 
 #define PycairoScaledFont_Type      *(Pycairo_CAPI->ScaledFont_Type)
 #define PycairoScaledFont_FromScaledFont \

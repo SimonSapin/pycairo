@@ -25,6 +25,7 @@ def build(ctx):
                     'font.c',
                     'path.c',
                     'pattern.c',
+                    'region.c',
                     'matrix.c',
                     'surface.c',
                     ],

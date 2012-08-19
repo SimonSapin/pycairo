@@ -15,5 +15,6 @@ Reference
    matrix
    paths
    patterns
+   region
    surfaces
    text

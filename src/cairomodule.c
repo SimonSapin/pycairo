@@ -157,6 +157,12 @@ static Pycairo_CAPI_t CAPI = {
   PycairoSurface_FromSurface,
 
   Pycairo_Check_Status,
+
+  &PycairoRectangleInt_Type,
+  PycairoRectangleInt_FromRectangleInt,
+
+  &PycairoRegion_Type,
+  PycairoRegion_FromRegion,
 };
 
 static PyObject *
@@ -244,6 +250,12 @@ PyInit__cairo(void)
   if (PyType_Ready(&PycairoLinearGradient_Type) < 0)
     return NULL;
   if (PyType_Ready(&PycairoRadialGradient_Type) < 0)
+    return NULL;
+
+  if (PyType_Ready(&PycairoRectangleInt_Type) < 0)
+    return NULL;
+
+  if (PyType_Ready(&PycairoRegion_Type) < 0)
     return NULL;
 
   if (PyType_Ready(&PycairoScaledFont_Type) < 0)
@@ -334,6 +346,12 @@ PyInit__cairo(void)
   Py_INCREF(&PycairoRadialGradient_Type);
   PyModule_AddObject(m, "RadialGradient",
 		     (PyObject *)&PycairoRadialGradient_Type);
+
+  Py_INCREF(&PycairoRectangleInt_Type);
+  PyModule_AddObject(m, "RectangleInt", (PyObject *)&PycairoRectangleInt_Type);
+
+  Py_INCREF(&PycairoRegion_Type);
+  PyModule_AddObject(m, "Region", (PyObject *)&PycairoRegion_Type);
 
   Py_INCREF(&PycairoScaledFont_Type);
   PyModule_AddObject(m, "ScaledFont", (PyObject *)&PycairoScaledFont_Type);
@@ -570,6 +588,10 @@ PyInit__cairo(void)
   CONSTANT(PS_LEVEL_2);
   CONSTANT(PS_LEVEL_3);
 #endif
+
+  CONSTANT(REGION_OVERLAP_IN);
+  CONSTANT(REGION_OVERLAP_OUT);
+  CONSTANT(REGION_OVERLAP_PART);
 
 #ifdef CAIRO_HAS_SVG_SURFACE
   CONSTANT(SVG_VERSION_1_1);

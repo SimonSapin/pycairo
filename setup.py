@@ -81,7 +81,8 @@ def createConfigFile(ConfigFile):
 
 
 if sys.version_info < python_version_required:
-  raise SystemExit('Error: Python >= %s is required' %s (python_version_required,))
+  raise SystemExit('Error: Python >= %s is required' %
+                   (python_version_required,))
 
 pkg_config_version_check ('cairo', cairo_version_required)
 if sys.platform == 'win32':
@@ -101,6 +102,7 @@ cairo = dic.Extension(
              'src/matrix.c',
              'src/path.c',
              'src/pattern.c',
+             'src/region.c',
              'src/surface.c',
              ],
   include_dirs = pkg_config_parse('--cflags-only-I', 'cairo'),
