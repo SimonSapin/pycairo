@@ -3,6 +3,9 @@
 - is not able to test the quality of images created. We assume cairo itself
   tests for this.
 '''
+import io
+import zlib
+import base64
 import tempfile as tfi
 
 import cairo
@@ -150,3 +153,42 @@ def test_region():
       cairo.RectangleInt(1, 14, 8, 1),
       cairo.RectangleInt(1, 13, 10, 1),
       ])
+
+
+def test_mime_data():
+    # A 1x1 pixel white image:
+    png_bytes = base64.b64decode(
+        b'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQV'
+        b'QI12P4DwABAQEAG7buVgAAAABJRU5ErkJggg==')
+    jpeg_bytes = zlib.decompress(base64.b64decode(
+        b'eJz7f+P/AwYBLzdPNwZGRkYGDyBk+H+bwRnEowj8P8TAzcHACDJHkOH/EQYRIBsV'
+        b'cP6/xcDBCBJlrLcHqRBAV8EAVcHIylSPVwGbPQEFjPaK9XDrBAipBSq4CQB9jiS0'))
+
+    def render(image, surface_type):
+        file_like = io.BytesIO()
+        surface = surface_type(file_like, 100, 100)
+        context = cairo.Context(surface)
+        context.set_source_surface(image, 0, 0)
+        context.paint()
+        surface.finish()
+        pdf_bytes = file_like.getvalue()
+        return pdf_bytes
+
+    image = cairo.ImageSurface.create_from_png(io.BytesIO(png_bytes))
+    assert image.get_mime_data('image/jpeg') is None
+
+    pdf_bytes = render(image, cairo.PDFSurface)
+    assert pdf_bytes.startswith(b'%PDF')
+    assert b'/Filter /DCTDecode' not in pdf_bytes
+
+    image.set_mime_data('image/jpeg', jpeg_bytes)
+    jpeg_bytes = jpeg_bytes[:]  # Copy, drop a reference to the old object.
+    assert image.get_mime_data('image/jpeg')[:] == jpeg_bytes
+
+    pdf_bytes = render(image, cairo.PDFSurface)
+    assert pdf_bytes.startswith(b'%PDF')
+    # JPEG-encoded image:
+    assert b'/Filter /DCTDecode' in pdf_bytes
+
+    image.set_mime_data('image/jpeg', None)
+    assert image.get_mime_data('image/jpeg') is None

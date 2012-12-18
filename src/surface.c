@@ -160,6 +160,16 @@ _write_str_func (void *closure, const unsigned char *data, unsigned int length) 
   return CAIRO_STATUS_SUCCESS;
 }
 
+/* for use with
+ * cairo_surface_set_mime_data()
+ */
+void
+_decref_func (void *closure) {
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  Py_DECREF((PyObject *)closure);
+  PyGILState_Release(gstate);
+}
+
 static void
 surface_dealloc (PycairoSurface *o) {
   if (o->surface) {
@@ -355,6 +365,74 @@ surface_write_to_png (PycairoSurface *o, PyObject *args) {
 }
 #endif  /* CAIRO_HAS_PNG_FUNCTIONS */
 
+const char*
+_get_mime_type(PyObject *obj) {
+  PyObject *capsule;
+  const char *result;
+
+  capsule = PyObject_GetItem(Pycairo_mime_type_map, obj);
+  if (capsule == NULL) {
+    return NULL;
+  }
+
+  result = PyCapsule_GetPointer(capsule, NULL);
+  Py_DECREF(capsule);
+  return result;
+}
+
+static PyObject *
+surface_set_mime_data (PycairoSurface *o, PyObject *args) {
+  PyObject *obj, *mime_type;
+  const char *mime_type_c;
+  const unsigned char *buffer;
+  unsigned long buffer_len;
+  cairo_status_t status;
+
+  if (!PyArg_ParseTuple(args, "OO:ImageSurface.set_mime_data",
+                        &mime_type, &obj))
+    return NULL;
+
+  mime_type_c = _get_mime_type(mime_type);
+  if (mime_type_c == NULL)
+    return NULL;
+
+  if (obj == Py_None) {
+    buffer = NULL;
+    buffer_len = 0;
+  } else {
+    if (!PyArg_ParseTuple(args, "Oy#:ImageSurface.set_mime_data",
+                          &mime_type, &buffer, &buffer_len))
+      return NULL;
+  }
+
+  status = cairo_surface_set_mime_data (
+    o->surface, mime_type_c, buffer, buffer_len, _decref_func, obj);
+  RETURN_NULL_IF_CAIRO_ERROR(status);
+  if (obj != Py_None) {
+    Py_INCREF(obj);
+  }
+  Py_RETURN_NONE;
+}
+
+static PyObject *
+surface_get_mime_data (PycairoSurface *o, PyObject *args) {
+  PyObject *mime_type;
+  const char *mime_type_c;
+  const unsigned char *buffer;
+  unsigned long buffer_len;
+
+  if (!PyArg_ParseTuple(args, "O:ImageSurface.get_mime_data", &mime_type))
+    return NULL;
+
+  mime_type_c = _get_mime_type(mime_type);
+  if (mime_type_c == NULL) {
+    PyErr_Clear();
+    Py_RETURN_NONE;
+  }
+
+  cairo_surface_get_mime_data (o->surface, mime_type_c, &buffer, &buffer_len);
+  return Py_BuildValue("y#", buffer, buffer_len);
+}
 
 static PyMethodDef surface_methods[] = {
   /* methods never exposed in a language binding:
@@ -385,6 +463,8 @@ static PyMethodDef surface_methods[] = {
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
   {"write_to_png",   (PyCFunction)surface_write_to_png,       METH_VARARGS},
 #endif
+  {"set_mime_data",  (PyCFunction)surface_set_mime_data,      METH_VARARGS},
+  {"get_mime_data",  (PyCFunction)surface_get_mime_data,      METH_VARARGS},
   {NULL, NULL, 0, NULL},
 };
 

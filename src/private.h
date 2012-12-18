@@ -32,6 +32,7 @@
 
 
 extern PyObject *CairoError;
+extern PyObject *Pycairo_mime_type_map;
 
 extern PyTypeObject PycairoContext_Type;
 PyObject *PycairoContext_FromContext (cairo_t *ctx, PyTypeObject *type,
