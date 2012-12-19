@@ -714,7 +714,7 @@ multi-page vector surface backend
    :param fobj: a filename or writable file object. None may be used to
    specify no output. This will generate a *SVGSurface* that may be queried
    and used as a source, without generating a temporary file.
-   :type fobj: None, filename (str), file or a file-like text-mode object
+   :type fobj: None, filename (str), file or a file-like bytes-mode object
    :param width_in_points: width of the surface, in points (1 point == 1/72.0 inch)
    :type  width_in_points: float
    :param height_in_points: height of the surface, in points (1 point == 1/72.0 inch)

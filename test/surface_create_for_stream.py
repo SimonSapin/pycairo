@@ -30,7 +30,7 @@ class C(object):
 WIDTH, HEIGHT  = 256, 256
 
 # a selection of possible args to surface.write_to_png()
-fo = sys.stdout  # only compatible with str/text objects - SVG
+fo = sys.stdout.buffer
 #fo = C()
 
 #fo = '/tmp/f.pdf'
